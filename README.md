@@ -46,4 +46,8 @@ The curse might involve something like a larger hitbox, reduced movement speed, 
 Additionally, there should be an item akin to the *Smash Bros. smash ball*. Its primary function would simply be to recharge abilities.
 
 ## Art Style
-The game features a 2.5D look to complement its mechanics and gameplay to save time and work for animations during this short period of time.
+The game features a visually appealing 2.5D aesthetic that strategically balances visual depth with practical implementation.
+
+This artistic choice not only complements the core mechanics and gameplay elements effectively, but also allows for efficient development and streamlined animation processes during the project's condensed timeline.
+
+The 2.5D perspective creates an engaging visual experience while maintaining a manageable scope for asset creation and character movement implementation.
