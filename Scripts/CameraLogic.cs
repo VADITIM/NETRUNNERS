@@ -21,7 +21,6 @@ public class CameraLogic : MonoBehaviour
     [SerializeField] private float minDistanceToTrigger = 0f;
     [SerializeField] private float maxAllowedDistance = 11f;
     
-    
     private Camera cam;
     private GameObject player1GameObject;
     private GameObject player2GameObject;
@@ -31,7 +30,7 @@ public class CameraLogic : MonoBehaviour
     private bool isPlayer2CrossingLeft = false;
     private Vector3 centerPosition;
 
-    private void Start()
+    void Start()
     {
         cam = GetComponent<Camera>();
 
@@ -111,41 +110,41 @@ public class CameraLogic : MonoBehaviour
         return distance >= minDistanceToTrigger && distance <= maxAllowedDistance;
     }
 
-private void CheckZoneCrossing()
-{
-    Vector3 player1ViewportPos = cam.WorldToViewportPoint(player1.position);
-    Vector3 player2ViewportPos = cam.WorldToViewportPoint(player2.position);
+    private void CheckZoneCrossing()
+    {
+        Vector3 player1ViewportPos = cam.WorldToViewportPoint(player1.position);
+        Vector3 player2ViewportPos = cam.WorldToViewportPoint(player2.position);
 
-    bool player1InRightZone = player1ViewportPos.x > rightSplitPoint;
-    bool player2InLeftZone = player2ViewportPos.x < leftSplitPoint;
-    bool distanceConditionMet = ArePlayersDistantEnough();
+        bool player1InRightZone = player1ViewportPos.x > rightSplitPoint;
+        bool player2InLeftZone = player2ViewportPos.x < leftSplitPoint;
+        bool distanceConditionMet = ArePlayersDistantEnough();
 
-    if (player1InRightZone && !isTimerActive && distanceConditionMet)
-    {
-        isTimerActive = true;
-        isPlayer1CrossingRight = true;
-        isPlayer2CrossingLeft = false;
-        zoneTimer = 0f;
-        Debug.Log($"Player 1 crossed to right zone with valid distance ({Mathf.Abs(player1.position.x - player2.position.x)}), starting timer");
+        if (player1InRightZone && !isTimerActive && distanceConditionMet)
+        {
+            isTimerActive = true;
+            isPlayer1CrossingRight = true;
+            isPlayer2CrossingLeft = false;
+            zoneTimer = 0f;
+            Debug.Log($"Player 1 crossed to right zone with valid distance ({Mathf.Abs(player1.position.x - player2.position.x)}), starting timer");
+        }
+        else if (player2InLeftZone && !isTimerActive && distanceConditionMet)
+        {
+            isTimerActive = true;
+            isPlayer1CrossingRight = false;
+            isPlayer2CrossingLeft = true;
+            zoneTimer = 0f;
+            Debug.Log($"Player 2 crossed to left zone with valid distance ({Mathf.Abs(player1.position.x - player2.position.x)}), starting timer");
+        }
+        else if ((!player1InRightZone && isPlayer1CrossingRight) || 
+                (!player2InLeftZone && isPlayer2CrossingLeft) ||
+                (!distanceConditionMet && isTimerActive))
+        {
+            isTimerActive = false;
+            isPlayer1CrossingRight = false;
+            isPlayer2CrossingLeft = false;
+            zoneTimer = 0f;
+        }
     }
-    else if (player2InLeftZone && !isTimerActive && distanceConditionMet)
-    {
-        isTimerActive = true;
-        isPlayer1CrossingRight = false;
-        isPlayer2CrossingLeft = true;
-        zoneTimer = 0f;
-        Debug.Log($"Player 2 crossed to left zone with valid distance ({Mathf.Abs(player1.position.x - player2.position.x)}), starting timer");
-    }
-    else if ((!player1InRightZone && isPlayer1CrossingRight) || 
-             (!player2InLeftZone && isPlayer2CrossingLeft) ||
-             (!distanceConditionMet && isTimerActive))
-    {
-        isTimerActive = false;
-        isPlayer1CrossingRight = false;
-        isPlayer2CrossingLeft = false;
-        zoneTimer = 0f;
-    }
-}
 
     private void HandleZoneSwap()
     {
@@ -210,42 +209,42 @@ private void CheckZoneCrossing()
         zoneTimer = 0f;
     }
 
-private void OnDrawGizmos()
-{
-    if (!cam) cam = GetComponent<Camera>();
-    if (!cam) return;
-
-    // Draw left split line
-    Gizmos.color = Color.yellow;
-    Vector3 leftLine = cam.ViewportToWorldPoint(new Vector3(leftSplitPoint, 0.5f, 10));
-    Gizmos.DrawLine(leftLine + Vector3.up * 5, leftLine + Vector3.down * 5);
-
-    // Draw right split line
-    Vector3 rightLine = cam.ViewportToWorldPoint(new Vector3(rightSplitPoint, 0.5f, 10));
-    Gizmos.DrawLine(rightLine + Vector3.up * 5, rightLine + Vector3.down * 5);
-
-    // Draw distance visualization if both players exist
-    if (player1 && player2)
+    private void OnDrawGizmos()
     {
-        float currentDistance = Mathf.Abs(player1.position.x - player2.position.x);
-        
-        // Green: Distance is in valid range
-        // Red: Too close or too far
-        Color distanceColor = (currentDistance >= minDistanceToTrigger && currentDistance <= maxAllowedDistance) ? Color.green : Color.red;
-        
-        Gizmos.color = distanceColor;
-        Gizmos.DrawLine(player1.position, player2.position);
+        if (!cam) cam = GetComponent<Camera>();
+        if (!cam) return;
 
-        // Draw max distance boundaries from center (if camera exists)
-        Gizmos.color = Color.red;
-        Vector3 centerPos = transform.position;
-        Vector3 leftBoundary = centerPos;
-        Vector3 rightBoundary = centerPos;
-        leftBoundary.x -= maxAllowedDistance / 2;
-        rightBoundary.x += maxAllowedDistance / 2;
-        
-        Gizmos.DrawLine(leftBoundary + Vector3.up * 5, leftBoundary + Vector3.down * 5);
-        Gizmos.DrawLine(rightBoundary + Vector3.up * 5, rightBoundary + Vector3.down * 5);
+        // Draw left split line
+        Gizmos.color = Color.yellow;
+        Vector3 leftLine = cam.ViewportToWorldPoint(new Vector3(leftSplitPoint, 0.5f, 10));
+        Gizmos.DrawLine(leftLine + Vector3.up * 5, leftLine + Vector3.down * 5);
+
+        // Draw right split line
+        Vector3 rightLine = cam.ViewportToWorldPoint(new Vector3(rightSplitPoint, 0.5f, 10));
+        Gizmos.DrawLine(rightLine + Vector3.up * 5, rightLine + Vector3.down * 5);
+
+        // Draw distance visualization if both players exist
+        if (player1 && player2)
+        {
+            float currentDistance = Mathf.Abs(player1.position.x - player2.position.x);
+            
+            // Green: Distance is in valid range
+            // Red: Too close or too far
+            Color distanceColor = (currentDistance >= minDistanceToTrigger && currentDistance <= maxAllowedDistance) ? Color.green : Color.red;
+            
+            Gizmos.color = distanceColor;
+            Gizmos.DrawLine(player1.position, player2.position);
+
+            // Draw max distance boundaries from center (if camera exists)
+            Gizmos.color = Color.red;
+            Vector3 centerPos = transform.position;
+            Vector3 leftBoundary = centerPos;
+            Vector3 rightBoundary = centerPos;
+            leftBoundary.x -= maxAllowedDistance / 2;
+            rightBoundary.x += maxAllowedDistance / 2;
+            
+            Gizmos.DrawLine(leftBoundary + Vector3.up * 5, leftBoundary + Vector3.down * 5);
+            Gizmos.DrawLine(rightBoundary + Vector3.up * 5, rightBoundary + Vector3.down * 5);
+        }
     }
-}
 }
