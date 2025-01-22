@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using FishNet.Connection;
 using FishNet.Object;
@@ -14,6 +15,7 @@ public class Movement
 
     private float currentSpeed;
     public bool isGrounded;
+    private bool hastAuthority;
 
     public Movement(Rigidbody rb, SpriteRenderer sprite, LayerMask groundLayer, float speed, float jumpForce, float groundCheckDistance)
     {
@@ -26,10 +28,13 @@ public class Movement
         this.groundCheckDistance = groundCheckDistance;
 
         currentSpeed = speed;
+        hastAuthority = true; 
     }
 
     public void UpdateMovement()
     {
+        if (!hastAuthority) return;
+        
         CheckGroundStatus();
         HandleMovement();
     }
@@ -49,7 +54,7 @@ public class Movement
         Vector3 raycastPosition = rb.transform.position;
         raycastPosition.y += 0.1f;
 
-        if (Physics.Raycast(raycastPosition, Vector3.down, out raycastHit, groundCheckDistance, groundLayer))
+        if (Physics.Raycast(raycastPosition, Vector3.down, out raycastHit, groundCheckDistance * 100, groundLayer))
         {
             isGrounded = true;
             Debug.DrawRay(raycastPosition, Vector3.down * groundCheckDistance, Color.green);
