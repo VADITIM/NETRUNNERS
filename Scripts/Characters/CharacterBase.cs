@@ -17,12 +17,13 @@ public abstract class CharacterBase : NetworkBehaviour
     private Movement movement;
     private StateMachine stateMachine;
 
-    public Movement1 movement1;
 
     public override void OnStartClient()
     {
         base.OnStartClient();
-        if (base.IsOwner)
+        rb = GetComponent<Rigidbody>();
+
+        if (base.HasAuthority)
         {
             movement = new Movement(rb, sprite, groundLayer, speed, jumpForce, groundCheckDistance);
             stateMachine = new StateMachine(movement, animator);
@@ -30,16 +31,8 @@ public abstract class CharacterBase : NetworkBehaviour
         else 
         {
             gameObject.GetComponent<CharacterBase>().enabled = false;
+            rb.isKinematic = true;
         }
-    }
-
-    protected virtual void Start()
-    {
-        rb = GetComponent<Rigidbody>();
-
-        movement = new Movement(rb, sprite, groundLayer, speed, jumpForce, groundCheckDistance);
-        // movement1 = new Movement1(rb, sprite, groundLayer, speed, jumpForce, groundCheckDistance, acceleration);
-        stateMachine = new StateMachine(movement, animator);
     }
 
     protected virtual void Update()
