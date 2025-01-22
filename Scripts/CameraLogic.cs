@@ -1,5 +1,6 @@
 using UnityEngine;
 using FishNet.Object;
+using Unity.VisualScripting;
 
 public class CameraLogic : MonoBehaviour
 {
@@ -22,6 +23,9 @@ public class CameraLogic : MonoBehaviour
     public Transform player1;
     public Transform player2;
 
+    private int player1ID = 0;
+    private int player2ID = 1;
+
     private float zoneTimer = 0f;
     private bool isTimerActive = false;
     private bool isPlayer1CrossingRight = false;
@@ -36,26 +40,37 @@ public class CameraLogic : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (player1 == null || player2 == null) return;
+        if (player1 == null && player2 == null) return;
 
-        if (CheckMaxDistance())
+        Vector3 centerPoint;
+        if (player1 != null && player2 != null)
         {
-            ResetPlayersToCenter();
-            return;
+            centerPoint = GetCenterPoint();
+
+            if (CheckMaxDistance())
+            {
+                ResetPlayersToCenter();
+                return;
+            }
+
+            CheckZoneCrossing();
+            HandleZoneSwap();
+        }
+        else
+        {
+            centerPoint = player1 != null ? player1.position : player2.position;
         }
 
-        CheckZoneCrossing();
-        HandleZoneSwap();
+        float newZoom = player1 != null && player2 != null ? CalculateZoom() : minZoom;
 
-        Vector3 centerPoint = GetCenterPoint();
-        float newZoom = CalculateZoom();
         Vector3 targetPosition = centerPoint + offset;
-
         transform.position = Vector3.Lerp(transform.position, targetPosition, smoothSpeed * Time.deltaTime);
         centerPosition = transform.position;
 
         if (cam.orthographic)
+        {
             cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, newZoom, smoothSpeed * Time.deltaTime);
+        }
         else
         {
             Vector3 newOffset = offset;
@@ -166,9 +181,18 @@ public class CameraLogic : MonoBehaviour
 
     private Vector3 GetCenterPoint()
     {
-        Bounds bounds = new Bounds(player1.position, Vector3.zero);
-        bounds.Encapsulate(player2.position);
-        return bounds.center;
+        if (player1 != null && player2 != null)
+        {
+            Bounds bounds = new Bounds(player1.position, Vector3.zero);
+            bounds.Encapsulate(player2.position);
+            return bounds.center;
+        }
+        else if (player1 != null)
+            return player1.position;
+        else if (player2 != null)
+            return player2.position;
+        else 
+            return Vector3.zero;
     }
 
     private float CalculateZoom()
@@ -182,14 +206,45 @@ public class CameraLogic : MonoBehaviour
     {
         int ownerID = playerNetworkObject.OwnerId;
         if (ownerID == 0)
+        {
             player1 = playerNetworkObject.transform; 
+            player1ID = playerNetworkObject.ObjectId;
+        }
         else if (ownerID == 1)
             player2 = playerNetworkObject.transform; 
+            player2ID = playerNetworkObject.ObjectId;
     }
 
     public void AssignPlayers(NetworkObject p1, NetworkObject p2)
     {
-        player1 = p1.transform;
-        player2 = p2.transform;
+        if (p1 != null)
+        {
+            player1 = p1.transform;
+            player1ID = p1.ObjectId;
+        }
+
+        if (p2 != null)
+        {
+            player2 = p2.transform;
+            player2ID = p2.ObjectId;
+        }
     }
+
+    // necessary for future implementation
+    // public void RemovePlayer(NetworkObject playerNetworkObject)
+    // {
+    //     if (playerNetworkObject.ObjectId == player1ID)
+    //     {
+    //         player1 = null;
+    //         player1ID = -1;
+    //     }
+    //     else if (playerNetworkObject.ObjectId == player2ID)
+    //     {
+    //         player2 = null;
+    //         player2ID = -1;
+    //     }
+    // }
+
+    // add this when killing player
+    // FindObjectOfType<CameraLogic>().RemovePlayer(this.GetComponent<NetworkObject>());
 }
