@@ -1,49 +1,58 @@
-
 using UnityEngine;
-using FishNet.Connection;
-using FishNet.Object;
 
 public class Movement
 {
     private Rigidbody rb;
     private SpriteRenderer sprite;
     private LayerMask groundLayer;
-
     private float speed;
     private float jumpForce;
-    private float groundCheckDistance;
-
+    public float groundCheckDistance;
     private float currentSpeed;
     public bool isGrounded;
     private bool hastAuthority;
+    private bool isCollidingWithGround; 
 
     public Movement(Rigidbody rb, SpriteRenderer sprite, LayerMask groundLayer, float speed, float jumpForce, float groundCheckDistance)
     {
         this.rb = rb;
         this.sprite = sprite;
         this.groundLayer = groundLayer;
-
         this.speed = speed;
         this.jumpForce = jumpForce;
         this.groundCheckDistance = groundCheckDistance;
-
         currentSpeed = speed;
-        hastAuthority = true; 
+        hastAuthority = true;
+        
+        GameObject playerObject = rb.gameObject;
+        Collider playerCollider = playerObject.GetComponent<Collider>();
+        if (playerCollider != null)
+        {
+            PhysicMaterial physicsMaterial = new PhysicMaterial
+            {
+                dynamicFriction = 0.6f,
+                staticFriction = 0.6f,
+                frictionCombine = PhysicMaterialCombine.Maximum,
+                bounceCombine = PhysicMaterialCombine.Minimum
+            };
+            playerCollider.material = physicsMaterial;
+        }
     }
 
-    public void UpdateMovement()
+    public void FixedUpdate()
     {
         if (!hastAuthority) return;
-        
+       
         CheckGroundStatus();
         HandleMovement();
+        HandleJump();
     }
 
     public void HandleJump()
     {
-        if (isGrounded && Input.GetButtonDown("Jump"))
+        if ((isGrounded || isCollidingWithGround) && Input.GetButtonDown("Jump"))
         {
-            rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z); // Reset Y velocity before jumping
+            rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         }
     }
@@ -53,18 +62,15 @@ public class Movement
         RaycastHit raycastHit;
         Vector3 raycastPosition = rb.transform.position;
         raycastPosition.y += 0.1f;
-
-        if (Physics.Raycast(raycastPosition, Vector3.down, out raycastHit, groundCheckDistance * 100, groundLayer))
+        if (Physics.Raycast(raycastPosition, Vector3.down, out raycastHit, groundCheckDistance, groundLayer))
         {
             isGrounded = true;
             Debug.DrawRay(raycastPosition, Vector3.down * groundCheckDistance, Color.green);
-
             if (rb.velocity.y < 0)
             {
                 Vector3 currentVelocity = rb.velocity;
                 currentVelocity.y = 0;
                 rb.velocity = currentVelocity;
-
                 Vector3 position = rb.transform.position;
                 position.y = raycastHit.point.y + 0.01f;
                 rb.transform.position = position;
@@ -75,13 +81,22 @@ public class Movement
             isGrounded = false;
             Debug.DrawRay(raycastPosition, Vector3.down * groundCheckDistance, Color.red);
         }
+
+        float sphereRadius = 0.1f;
+        isCollidingWithGround = Physics.SphereCast(
+            raycastPosition,
+            sphereRadius,
+            Vector3.down,
+            out RaycastHit sphereHit,
+            groundCheckDistance,
+            groundLayer
+        );
     }
 
     private void HandleMovement()
     {
         float x = 0f;
         float z = 0f;
-
         if (Input.GetKey(KeyCode.A))
         {
             x = -1f;
@@ -90,18 +105,54 @@ public class Movement
         {
             x = 1f;
         }
-
-        float targetSpeed = isGrounded ? speed : 3f;
-
+        
+        float targetSpeed = (isGrounded || isCollidingWithGround) ? speed : 3f;
         currentSpeed = targetSpeed;
-
         Vector3 moveDirection = new Vector3(x, 0, z) * currentSpeed;
-
         rb.velocity = new Vector3(moveDirection.x, rb.velocity.y, moveDirection.z);
-
+        
         if (x > 0)
             sprite.flipX = false;
         else if (x < 0)
             sprite.flipX = true;
     }
+
+    // public void OnCollisionEnter(Collision collision)
+    // {
+    //     if (((1 << collision.gameObject.layer) & groundLayer) != 0)
+    //     {
+    //         foreach (ContactPoint contact in collision.contacts)
+    //         {
+    //             if (Vector3.Dot(contact.normal, Vector3.up) > 0.7f)
+    //             {
+    //                 isCollidingWithGround = true;
+    //                 break;
+    //             }
+    //         }
+    //     }
+    // }
+
+    // public void OnCollisionExit(Collision collision)
+    // {
+    //     if (((1 << collision.gameObject.layer) & groundLayer) != 0)
+    //     {
+    //         isCollidingWithGround = false;
+    //     }
+    // }
+
+    // public void OnCollisionStay(Collision collision)
+    // {
+    //     if (((1 << collision.gameObject.layer) & groundLayer) != 0)
+    //     {
+    //         foreach (ContactPoint contact in collision.contacts)
+    //         {
+    //             if (Vector3.Dot(contact.normal, Vector3.up) > 0.7f)
+    //             {
+    //                 isCollidingWithGround = true;
+    //                 return;
+    //             }
+    //         }
+    //         isCollidingWithGround = false;
+    //     }
+    // }
 }
