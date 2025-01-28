@@ -16,6 +16,6 @@ public class PlayerSpawner : NetworkBehaviour
         if (cameraLogic != null)
             cameraLogic.AssignPlayerDynamically(GetComponent<NetworkObject>());
         else
-            Debug.LogError("CameraLogic not found on the Main Camera!");
+            return;
     }
 }

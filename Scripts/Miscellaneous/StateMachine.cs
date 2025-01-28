@@ -2,12 +2,12 @@ using UnityEngine;
 
 public class StateMachine
 {
+    private Movement movement;
     private Animator animator;
-    private CharacterBase charBase;
 
-    public StateMachine(CharacterBase charBase, Animator animator)
+    public StateMachine(Movement movement, Animator animator)
     {
-        this.charBase = charBase;
+        this.movement = movement;
         this.animator = animator;
     }
 
@@ -16,7 +16,7 @@ public class StateMachine
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
 
-        bool isJumping = !charBase.isGrounded;
+        bool isJumping = !movement.isGrounded;
         bool isMoving = Mathf.Abs(x) > 0.1f;
 
         animator.SetBool("isMoving", isMoving);
