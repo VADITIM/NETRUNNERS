@@ -1,7 +1,7 @@
 using UnityEngine;
 using FishNet.Object;
 
-public abstract class WeaponBase : MonoBehaviour
+public abstract class WeaponBase : NetworkBehaviour
 {
     [SerializeField] private LayerMask hitLayer;
     [SerializeField] private SpriteRenderer sprite;
@@ -15,58 +15,62 @@ public abstract class WeaponBase : MonoBehaviour
     private bool isAttacking;
     private bool isThrown;
 
-    private void Start()
+    private CharacterBase owner;
+
+    public void SetOwner(CharacterBase owner)
     {
-        boxCollider = GetComponent<BoxCollider>();
-        rb = GetComponent<Rigidbody>();
+        this.owner = owner;
     }
 
-    // public override void OnStartClient()
-    // {
-    //     base.OnStartClient();
-    //     boxCollider = GetComponent<BoxCollider>();
-    //     rb = GetComponent<Rigidbody>();
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+        boxCollider = GetComponent<BoxCollider>();
+        rb = GetComponent<Rigidbody>();
         
-    //     if (base.HasAuthority)
-    //     {
-    //        boxCollider = GetComponent<BoxCollider>();
-    //     }
-    //     else
-    //     {
-    //         gameObject.GetComponent<WeaponBase>().enabled = false;
-    //         rb.isKinematic = true;
-    //     }
-    // }
+        if (base.HasAuthority)
+        {
+           boxCollider = GetComponent<BoxCollider>();
+           gameObject.tag = "Weapon1";
+           gameObject.SetActive(true);
+        }
+        else
+        {
+           gameObject.tag = "Weapon2";
+           rb.isKinematic = true;
+        }
+    }
 
     protected virtual void Update()
     {
-        if (boxCollider == null)
-        {
-            Debug.LogError("BoxCollider is null.");
-        }
+        Throw();
 
-        if (isBroken)
+        // animator.SetBool("isBroken", true);
+        // animator.SetBool("isAttacking", true);
+        // animator.SetBool("isThrown", true);
+    }
+
+
+    protected virtual void Throw()
+    {
+        if (Input.GetKeyDown(KeyCode.Mouse0))
         {
-            animator.SetBool("isBroken", true);
-            return;
-        }
-        if (isAttacking)
-        {
-            animator.SetBool("isAttacking", true);
-            return;
-        }
-        if (isThrown)
-        {
-            animator.SetBool("isThrown", true);
-            return;
+            Debug.Log("Throwing weapon.");
+            isThrown = true;
+            rb.isKinematic = false;
+            rb.AddForce(transform.right * 0.4f , ForceMode.Impulse);
         }
     }
 
     protected virtual void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (gameObject.CompareTag("Weapon1") && collision.gameObject.CompareTag("Player2"))
         {
-            Debug.Log("Weapon collided with player.");
+            Debug.Log("weapon ONE hit player TWO");
+        }
+        else if (gameObject.CompareTag("Weapon2") && collision.gameObject.CompareTag("Player1"))
+        {
+            Debug.Log("weapon TWO hit player ONE");
         }
     }
 }
