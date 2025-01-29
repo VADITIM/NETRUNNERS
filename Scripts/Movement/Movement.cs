@@ -5,6 +5,7 @@ public class Movement
     private Rigidbody rb;
     private SpriteRenderer sprite;
     private LayerMask groundLayer;
+    
     private float speed;
     private float jumpForce;
     public float groundCheckDistance;
@@ -116,43 +117,4 @@ public class Movement
         else if (x < 0)
             sprite.flipX = true;
     }
-
-    // public void OnCollisionEnter(Collision collision)
-    // {
-    //     if (((1 << collision.gameObject.layer) & groundLayer) != 0)
-    //     {
-    //         foreach (ContactPoint contact in collision.contacts)
-    //         {
-    //             if (Vector3.Dot(contact.normal, Vector3.up) > 0.7f)
-    //             {
-    //                 isCollidingWithGround = true;
-    //                 break;
-    //             }
-    //         }
-    //     }
-    // }
-
-    // public void OnCollisionExit(Collision collision)
-    // {
-    //     if (((1 << collision.gameObject.layer) & groundLayer) != 0)
-    //     {
-    //         isCollidingWithGround = false;
-    //     }
-    // }
-
-    // public void OnCollisionStay(Collision collision)
-    // {
-    //     if (((1 << collision.gameObject.layer) & groundLayer) != 0)
-    //     {
-    //         foreach (ContactPoint contact in collision.contacts)
-    //         {
-    //             if (Vector3.Dot(contact.normal, Vector3.up) > 0.7f)
-    //             {
-    //                 isCollidingWithGround = true;
-    //                 return;
-    //             }
-    //         }
-    //         isCollidingWithGround = false;
-    //     }
-    // }
 }
