@@ -35,7 +35,8 @@ public abstract class CharacterBase : NetworkBehaviour
             stateMachine = new StateMachine(movement, animator);
             gameObject.tag = "Player1";
 
-            instantiateWeapon.SpawnWeaponServerRpc();
+            string selectedWeapon = WeaponManager.GetSelectedWeapon();
+            instantiateWeapon.SpawnWeaponServerRpc(selectedWeapon);
         }
         else
         {
@@ -44,7 +45,7 @@ public abstract class CharacterBase : NetworkBehaviour
             gameObject.tag = "Player2";
         }
     }
-
+    
     protected virtual void Update()
     {
         if (movement == null) return;
