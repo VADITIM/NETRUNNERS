@@ -67,6 +67,8 @@ public abstract class WeaponBase : NetworkBehaviour
             collision.gameObject.CompareTag("Player1"))
         {
             Debug.Log("weapon TWO hit player ONE");
+            CharacterBase player = collision.gameObject.GetComponent<CharacterBase>();
+            player.DisablePlayerServerRpc();
         }
     }
 }
