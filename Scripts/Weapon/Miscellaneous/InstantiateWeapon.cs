@@ -11,9 +11,10 @@ public class InstantiateWeapon : NetworkBehaviour
     }
 
     [ServerRpc]
-    public void SpawnWeaponServerRpc()
+    public void SpawnWeaponServerRpc(string weaponName)
     {
-        GameObject weaponInstance = Instantiate(characterBase.weaponPrefab, characterBase.weaponHolder.position, characterBase.weaponHolder.rotation);
+        GameObject weaponPrefab = Resources.Load<GameObject>($"Weapons/{weaponName}");
+        GameObject weaponInstance = Instantiate(weaponPrefab, characterBase.weaponHolder.position, characterBase.weaponHolder.rotation);
         NetworkObject networkObject = weaponInstance.GetComponent<NetworkObject>();
         
         base.Spawn(networkObject);
