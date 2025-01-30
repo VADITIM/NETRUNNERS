@@ -22,28 +22,41 @@ public abstract class CharacterBase : NetworkBehaviour
     private StateMachine stateMachine;
     private InstantiateWeapon instantiateWeapon;
 
-    public override void OnStartClient()
+    private void Awake()
     {
-        base.OnStartClient();
-
         rb = GetComponent<Rigidbody>();
         instantiateWeapon = GetComponent<InstantiateWeapon>();
-
-        if (base.HasAuthority)
+    }
+    
+    public override void OnStartClient() 
+    {
+        base.OnStartClient();
+        
+        if (base.IsOwner) 
         {
             movement = new Movement(rb, sprite, groundLayer, speed, jumpForce, groundCheckDistance);
             stateMachine = new StateMachine(movement, animator);
             gameObject.tag = "Player1";
-
+            
             string selectedWeapon = WeaponManager.GetSelectedWeapon();
             instantiateWeapon.SpawnWeaponServerRpc(selectedWeapon);
-        }
-        else
+        } 
+        else 
         {
-            gameObject.GetComponent<CharacterBase>().enabled = false;
-            rb.isKinematic = true;
             gameObject.tag = "Player2";
+            rb.isKinematic = true;
         }
+    }
+    [ServerRpc]
+    public void DisablePlayerServerRpc()
+    {
+        DisablePlayerObserversRpc();
+    }
+
+    [ObserversRpc]
+    private void DisablePlayerObserversRpc()
+    {
+        gameObject.SetActive(false);
     }
     
     protected virtual void Update()
