@@ -4,22 +4,25 @@ using UnityEngine;
 public class Throwing : NetworkBehaviour 
 {
     private WeaponBase weaponBase;
+    private float decelerationFactor = .98f; // Adjust this value to control the rate of deceleration
 
     public override void OnStartClient()
     {
         weaponBase = GetComponent<WeaponBase>();
+        weaponBase.rb.isKinematic = true; // Set the Rigidbody to be kinematic initially
     }
 
     public void FixedUpdate()
     {
         Throw();
-        ThrowDown();
+        ApplyDeceleration();
     }
 
     public void Throw()
     {
-        if (base.HasAuthority && Input.GetKeyDown(KeyCode.Mouse0))
+        if (base.HasAuthority && Input.GetKeyDown(KeyCode.Mouse0) && !weaponBase.isThrown)
         {
+            weaponBase.isThrown = true;
             ThrowServer();
         }
     }
@@ -30,7 +33,8 @@ public class Throwing : NetworkBehaviour
         Debug.Log("Throw executed on server."); 
 
         weaponBase.isThrown = true;
-        weaponBase.rb.AddForce(transform.up * 0.2f, ForceMode.Impulse);
+        weaponBase.rb.isKinematic = false; // Make the Rigidbody non-kinematic when thrown
+        weaponBase.rb.AddForce(transform.right * 17.2f, ForceMode.Impulse);
         ThrowClient();
     }
 
@@ -40,29 +44,15 @@ public class Throwing : NetworkBehaviour
         Debug.Log("Throw synced to all clients."); 
 
         weaponBase.isThrown = true;
-        weaponBase.rb.AddForce(transform.up * 0.2f, ForceMode.Impulse);
+        weaponBase.rb.isKinematic = false; // Make the Rigidbody non-kinematic when thrown
+        weaponBase.rb.AddForce(transform.right * 17.2f, ForceMode.Impulse);
     }
 
-    
-    public void ThrowDown()
+    private void ApplyDeceleration()
     {
-        if (base.HasAuthority && Input.GetKeyDown(KeyCode.Mouse1))
+        if (weaponBase.isThrown)
         {
-            ThrowDownServer();
+            weaponBase.rb.velocity *= decelerationFactor;
         }
-    }
-
-    [ServerRpc]
-    private void ThrowDownServer()
-    {
-        weaponBase.rb.AddForce(-transform.up * .2f, ForceMode.Impulse);
-
-        ThrowDownClient();
-    }
-
-    [ObserversRpc]
-    private void ThrowDownClient()
-    {
-        weaponBase.rb.AddForce(-transform.up * .2f, ForceMode.Impulse);
     }
 }
