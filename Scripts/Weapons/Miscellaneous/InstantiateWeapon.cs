@@ -14,25 +14,21 @@ public class InstantiateWeapon : NetworkBehaviour
     public void SpawnWeaponServerRpc(string weaponName)
     {
         GameObject weaponPrefab = Resources.Load<GameObject>($"Weapons/{weaponName}");
-        GameObject weaponInstance = Instantiate(weaponPrefab, characterBase.weaponHolder.position, characterBase.weaponHolder.rotation);
+        GameObject weaponInstance = Instantiate(weaponPrefab);
         NetworkObject networkObject = weaponInstance.GetComponent<NetworkObject>();
-        
+
+        characterBase.weaponInstance = weaponInstance;
+
+        // Parent to the weapon holder before spawning
+        weaponInstance.transform.SetParent(characterBase.weaponHolder, false);
+        weaponInstance.transform.localPosition = Vector3.zero;
+        weaponInstance.transform.localRotation = Quaternion.identity;
+
+        // Save the initial position and rotation
+        WeaponBase weaponBase = weaponInstance.GetComponent<WeaponBase>();
+        weaponBase.SaveInitialTransform();
+
         base.Spawn(networkObject);
         networkObject.GiveOwnership(Owner);
-        AttachWeaponObserversRpc(networkObject.ObjectId);
-    }
-
-    [ObserversRpc]
-    public void AttachWeaponObserversRpc(int weaponObjectId)
-    {
-        characterBase.weaponInstance.transform.SetParent(characterBase.weaponHolder);
-        characterBase.weaponInstance.transform.localPosition = Vector3.zero;
-        characterBase.weaponInstance.transform.localRotation = Quaternion.identity;
-
-        WeaponBase weaponScript = characterBase.weaponInstance.GetComponent<WeaponBase>();
-        if (weaponScript != null)
-        {
-            weaponScript.SetOwner(this.characterBase);
-        }
     }
 }
