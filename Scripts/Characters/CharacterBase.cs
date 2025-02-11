@@ -21,13 +21,20 @@ public abstract class CharacterBase : NetworkBehaviour
     private Movement movement;
     private StateMachine stateMachine;
     private InstantiateWeapon instantiateWeapon;
+    public Abilities abilities; 
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         instantiateWeapon = GetComponent<InstantiateWeapon>();
+        abilities = GetComponent<Abilities>(); 
+
+        if (abilities == null)
+        {
+            Debug.LogError("Abilities component not found on the character.");
+        }
     }
-    
+
     public override void OnStartClient() 
     {
         base.OnStartClient();
@@ -47,6 +54,27 @@ public abstract class CharacterBase : NetworkBehaviour
             rb.isKinematic = true;
         }
     }
+
+    protected override void OnValidate()
+    {
+        base.OnValidate();
+        if (weaponHolder == null)
+            weaponHolder = transform.Find("WeaponHolder");
+    }
+
+    public override void OnStartNetwork()
+    {
+        base.OnStartNetwork();
+        if (weaponHolder == null)
+        {
+            GameObject holder = new GameObject("WeaponHolder");
+            weaponHolder = holder.transform;
+            weaponHolder.SetParent(transform);
+            weaponHolder.localPosition = Vector3.zero;
+            weaponHolder.localRotation = Quaternion.identity;
+        }
+    }
+    
     [ServerRpc]
     public void DisablePlayerServerRpc()
     {

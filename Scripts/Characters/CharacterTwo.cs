@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class CharacterOne : CharacterBase
+public class CharacterTwo : CharacterBase
 {
     protected override void Update()
     {
@@ -10,7 +10,7 @@ public class CharacterOne : CharacterBase
             if (abilities == null) return;
                 abilities.AbilityOne();
         }
-        
+                
         if (IsOwner && Input.GetKeyDown(KeyCode.E))
         {
             if (abilities == null) return;
