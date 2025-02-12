@@ -4,12 +4,12 @@ using UnityEngine;
 public class Throwing : NetworkBehaviour 
 {
     private WeaponBase weaponBase;
-    private float decelerationFactor = .98f; // Adjust this value to control the rate of deceleration
+    private float decelerationFactor = .98f; 
 
     public override void OnStartClient()
     {
         weaponBase = GetComponent<WeaponBase>();
-        weaponBase.rb.isKinematic = true; // Set the Rigidbody to be kinematic initially
+        weaponBase.rb.isKinematic = true; 
     }
 
     public void FixedUpdate()
@@ -23,6 +23,7 @@ public class Throwing : NetworkBehaviour
         if (base.HasAuthority && Input.GetKeyDown(KeyCode.Mouse0) && !weaponBase.isThrown)
         {
             weaponBase.isThrown = true;
+            weaponBase.pickupTrigger.enabled = true;
             ThrowServer();
         }
     }
@@ -33,7 +34,8 @@ public class Throwing : NetworkBehaviour
         Debug.Log("Throw executed on server."); 
 
         weaponBase.isThrown = true;
-        weaponBase.rb.isKinematic = false; // Make the Rigidbody non-kinematic when thrown
+        weaponBase.pickupTrigger.enabled = true;
+        weaponBase.rb.isKinematic = false;
         weaponBase.rb.AddForce(transform.right * 17.2f, ForceMode.Impulse);
         ThrowClient();
     }
@@ -44,7 +46,8 @@ public class Throwing : NetworkBehaviour
         Debug.Log("Throw synced to all clients."); 
 
         weaponBase.isThrown = true;
-        weaponBase.rb.isKinematic = false; // Make the Rigidbody non-kinematic when thrown
+        weaponBase.pickupTrigger.enabled = true;
+        weaponBase.rb.isKinematic = false;
         weaponBase.rb.AddForce(transform.right * 17.2f, ForceMode.Impulse);
     }
 

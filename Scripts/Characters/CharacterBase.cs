@@ -1,5 +1,6 @@
 using UnityEngine;
 using FishNet.Object;
+using System.Collections;
 
 public abstract class CharacterBase : NetworkBehaviour
 {
@@ -12,43 +13,33 @@ public abstract class CharacterBase : NetworkBehaviour
     [SerializeField] private float groundCheckDistance = 0.18f;
     [SerializeField] private float acceleration = 2f;
 
-    [SerializeField] public GameObject weaponPrefab;
-    [SerializeField] public Transform weaponHolder;
+    public int PlayerID { get; private set; }
+
+    public GameObject weaponPrefab;
+    public Transform weaponHolder;
     public GameObject weaponInstance;
 
     private Rigidbody rb;
-
     private Movement movement;
     private StateMachine stateMachine;
-    private InstantiateWeapon instantiateWeapon;
     public Abilities abilities; 
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        instantiateWeapon = GetComponent<InstantiateWeapon>();
         abilities = GetComponent<Abilities>(); 
-
-        if (abilities == null)
-        {
-            Debug.LogError("Abilities component not found on the character.");
-        }
     }
 
-    public override void OnStartClient() 
+    public override void OnStartClient()
     {
         base.OnStartClient();
         
-        if (base.IsOwner) 
+        if (IsOwner)
         {
             movement = new Movement(rb, sprite, groundLayer, speed, jumpForce, groundCheckDistance);
-            stateMachine = new StateMachine(movement, animator);
             gameObject.tag = "Player1";
-            
-            string selectedWeapon = WeaponManager.GetSelectedWeapon();
-            instantiateWeapon.SpawnWeaponServerRpc(selectedWeapon);
-        } 
-        else 
+        }
+        else
         {
             gameObject.tag = "Player2";
             rb.isKinematic = true;

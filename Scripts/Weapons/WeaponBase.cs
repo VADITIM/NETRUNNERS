@@ -7,11 +7,10 @@ public abstract class WeaponBase : NetworkBehaviour
     [SerializeField] private SpriteRenderer sprite;
     [SerializeField] private Animator animator;
     [SerializeField] private float damage;
-    [SerializeField] private float pickupRadius = 20f;
-
+    [SerializeField] private float pickupRadius = 0.4f;
     public BoxCollider weaponCollider;
     public Rigidbody rb;
-    private SphereCollider pickupTrigger;
+    public SphereCollider pickupTrigger;
 
     public bool isBroken;
     public bool isAttacking;
@@ -19,8 +18,7 @@ public abstract class WeaponBase : NetworkBehaviour
 
     private CharacterBase owner;
     private Throwing throwing;
-    private Vector3 initialPosition;
-    private Quaternion initialRotation;
+    private Transform weaponHolder;
 
     public override void OnStartClient()
     {
@@ -31,16 +29,11 @@ public abstract class WeaponBase : NetworkBehaviour
         throwing = GetComponent<Throwing>();
 
         pickupTrigger = gameObject.AddComponent<SphereCollider>();
-        pickupTrigger.enabled = true;
         pickupTrigger.radius = pickupRadius;
         pickupTrigger.isTrigger = true;
         pickupTrigger.enabled = false;
 
-        if (transform.parent != null)
-        {
-            initialPosition = transform.localPosition;
-            initialRotation = transform.localRotation;
-        }
+        weaponHolder = transform.parent;
 
         if (base.HasAuthority)
         {
@@ -61,22 +54,29 @@ public abstract class WeaponBase : NetworkBehaviour
         if ((other.CompareTag("Player1") && pickupTrigger.CompareTag("Weapon1")) ||
             (other.CompareTag("Player2") && pickupTrigger.CompareTag("Weapon2")))
         {
-            MoveBackToInitialPosition();
-            Debug.Log("Weapon picked up by player");
+            isThrown = false;
+            pickupTrigger.enabled = false;
+            ResetToWeaponHolder();
+            PickupWeaponServerRpc();
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void PickupWeaponServerRpc()
+    {
+        PickupWeaponObserversRpc();
+    }
+
+    [ObserversRpc]
+    private void PickupWeaponObserversRpc()
+    {
+        ResetToWeaponHolder();
     }
 
     protected virtual void Update()
     {
         if (throwing == null) return;
-
         throwing.FixedUpdate();
-    }
-
-    public void SaveInitialTransform()
-    {
-        initialPosition = transform.localPosition;
-        initialRotation = transform.localRotation;
     }
 
     public void SetThrown(bool value)
@@ -86,28 +86,27 @@ public abstract class WeaponBase : NetworkBehaviour
         {
             transform.SetParent(null);
             pickupTrigger.enabled = true;
+            rb.isKinematic = false;
         }
     }
 
-    public void SetOwner(CharacterBase owner)
+    public void SetOwner(CharacterBase newOwner)
     {
-        this.owner = owner;
-    }
-
-    protected virtual void OnCollisionEnter(Collision collision)
-    {
-        if (isThrown && collision.gameObject == owner.gameObject)
+        owner = newOwner;
+        if (owner != null)
         {
-            MoveBackToInitialPosition();
+            weaponHolder = owner.transform;
+            ResetToWeaponHolder();
         }
     }
 
-    private void MoveBackToInitialPosition()
+    private void ResetToWeaponHolder()
     {
-        transform.SetParent(owner.weaponHolder, false);
-        transform.localPosition = initialPosition;
-        transform.localRotation = initialRotation;
+        if (weaponHolder == null) return;
+
+        transform.SetParent(weaponHolder);
+        transform.localPosition = Vector3.zero;
+        transform.localRotation = Quaternion.identity;
         rb.isKinematic = true;
-        isThrown = false;
     }
 }
