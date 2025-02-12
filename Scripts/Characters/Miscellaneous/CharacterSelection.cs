@@ -42,6 +42,7 @@ public class CharacterSelection : NetworkBehaviour
     private void SpawnCharacter(int spawnIndex, NetworkConnection conn)
     {
         GameObject character = Instantiate(characters[spawnIndex], SpawnPoint.instance.transform.position, Quaternion.identity);
+        
         Spawn(character.GetComponent<NetworkObject>(), conn);
     }
 }
