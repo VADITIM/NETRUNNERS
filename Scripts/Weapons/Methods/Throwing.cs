@@ -1,5 +1,5 @@
-using FishNet.Object;
 using UnityEngine;
+using FishNet.Object;
 
 public class Throwing : NetworkBehaviour 
 {
@@ -20,6 +20,8 @@ public class Throwing : NetworkBehaviour
 
     public void Throw()
     {
+        if (!weaponBase) return;
+
         if (base.HasAuthority && Input.GetKeyDown(KeyCode.Mouse0) && !weaponBase.isThrown)
         {
             weaponBase.isThrown = true;
@@ -31,8 +33,6 @@ public class Throwing : NetworkBehaviour
     [ServerRpc]
     private void ThrowServer()
     {
-        Debug.Log("Throw executed on server."); 
-
         weaponBase.isThrown = true;
         weaponBase.pickupTrigger.enabled = true;
         weaponBase.rb.isKinematic = false;
@@ -43,8 +43,6 @@ public class Throwing : NetworkBehaviour
     [ObserversRpc]
     private void ThrowClient()
     {
-        Debug.Log("Throw synced to all clients."); 
-
         weaponBase.isThrown = true;
         weaponBase.pickupTrigger.enabled = true;
         weaponBase.rb.isKinematic = false;
@@ -53,7 +51,9 @@ public class Throwing : NetworkBehaviour
 
     private void ApplyDeceleration()
     {
-        if (weaponBase.isThrown)
+        if (!weaponBase) return;
+
+        if (weaponBase.isThrown && !weaponBase.rb.isKinematic)
         {
             weaponBase.rb.velocity *= decelerationFactor;
         }
