@@ -8,10 +8,12 @@ public abstract class CharacterBase : NetworkBehaviour
     [SerializeField] private SpriteRenderer sprite;
     [SerializeField] private Animator animator;
 
-    [SerializeField] private float speed = 4.5f;
-    [SerializeField] private float jumpForce = 5f;
+    private float speed = 3.5f;
+    private float jumpForce = 5f;
+    private float acceleration = 20f;
+    private float maxSpeed = 8.5f;
+    private float jumpBoostX = 10f;
     [SerializeField] private float groundCheckDistance = 0.18f;
-    [SerializeField] private float acceleration = 2f;
 
     public int PlayerID { get; private set; }
 
@@ -21,8 +23,9 @@ public abstract class CharacterBase : NetworkBehaviour
 
     private Rigidbody rb;
     private Movement movement;
-    private StateMachine stateMachine;
     public Abilities abilities; 
+    
+    private StateMachine stateMachine;
 
     private void Awake()
     {
@@ -36,7 +39,7 @@ public abstract class CharacterBase : NetworkBehaviour
         
         if (IsOwner)
         {
-            movement = new Movement(rb, sprite, groundLayer, speed, jumpForce, groundCheckDistance);
+            movement = new Movement(rb, sprite, groundLayer, speed, jumpForce, groundCheckDistance, acceleration, maxSpeed);
             gameObject.tag = "Player1";
         }
         else
