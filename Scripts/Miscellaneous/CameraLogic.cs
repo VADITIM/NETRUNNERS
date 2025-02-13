@@ -13,10 +13,11 @@ public class CameraLogic : MonoBehaviour
     [Header("Split Screen Settings")]
     [SerializeField] private float swapDelay = 1.25f;
     [SerializeField] private float swapOffset = 5f;
+    [SerializeField] private float resetDistance = 9.98f;
     [SerializeField, Range(0, 1)] private float leftSplitPoint = 0.25f;
     [SerializeField, Range(0, 1)] private float rightSplitPoint = 0.75f;
     [SerializeField] private float minDistanceToTrigger = 0f;
-    [SerializeField] private float maxAllowedDistance = 10f;
+    [SerializeField] private float maxAllowedDistance = 20f;
 
     private Camera cam;
     public Transform player1;
@@ -130,11 +131,11 @@ public class CameraLogic : MonoBehaviour
         Vector3 center = new Vector3(centerPosition.x, player1.position.y, player1.position.z);
 
         Vector3 player1Position = center;
-        player1Position.x -= swapOffset;
+        player1Position.x -= resetDistance;
         player1.position = player1Position;
 
         Vector3 player2Position = center;
-        player2Position.x += swapOffset;
+        player2Position.x += resetDistance;
         player2.position = player2Position;
 
         isTimerActive = false;
