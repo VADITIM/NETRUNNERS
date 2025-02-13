@@ -18,7 +18,14 @@ public abstract class WeaponBase : NetworkBehaviour
 
     private CharacterBase owner;
     private Throwing throwing;
-    private Transform weaponHolder;
+    public Transform weaponHolder;
+    private PickUpWeapon pickUpWeapon;
+
+    public void Awake()
+    {
+        weaponCollider = GetComponent<BoxCollider>();   
+        pickUpWeapon = gameObject.AddComponent<PickUpWeapon>();
+    }
 
     public override void OnStartClient()
     {
@@ -49,28 +56,7 @@ public abstract class WeaponBase : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!isThrown) return;
-
-        if ((other.CompareTag("Player1") && pickupTrigger.CompareTag("Weapon1")) ||
-            (other.CompareTag("Player2") && pickupTrigger.CompareTag("Weapon2")))
-        {
-            isThrown = false;
-            pickupTrigger.enabled = false;
-            ResetToWeaponHolder();
-            PickupWeaponServerRpc();
-        }
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void PickupWeaponServerRpc()
-    {
-        PickupWeaponObserversRpc();
-    }
-
-    [ObserversRpc]
-    private void PickupWeaponObserversRpc()
-    {
-        ResetToWeaponHolder();
+        pickUpWeapon.PickUp(other);
     }
 
     protected virtual void Update()
@@ -96,17 +82,8 @@ public abstract class WeaponBase : NetworkBehaviour
         if (owner != null)
         {
             weaponHolder = owner.transform;
-            ResetToWeaponHolder();
+            pickUpWeapon.ResetToWeaponHolder();
         }
     }
 
-    private void ResetToWeaponHolder()
-    {
-        if (weaponHolder == null) return;
-
-        transform.SetParent(weaponHolder);
-        transform.localPosition = Vector3.zero;
-        transform.localRotation = Quaternion.identity;
-        rb.isKinematic = true;
-    }
 }
