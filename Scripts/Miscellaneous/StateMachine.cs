@@ -4,11 +4,13 @@ public class StateMachine
 {
     private Movement movement;
     private Animator animator;
+    private CharacterBase characterBase;
 
-    public StateMachine(Movement movement, Animator animator)
+    public StateMachine(Movement movement, Animator animator, CharacterBase characterBase)
     {
         this.movement = movement;
         this.animator = animator;
+        this.characterBase = characterBase;
     }
 
     public void UpdateState()
@@ -19,7 +21,32 @@ public class StateMachine
         bool isJumping = !movement.isGrounded;
         bool isMoving = Mathf.Abs(x) > 0.1f;
 
-        animator.SetBool("isMoving", isMoving);
-        animator.SetBool("isJumping", isJumping);
+        characterBase.RequestStateUpdate(isMoving, isJumping);
+
+        if (isJumping)
+        {
+            if (Input.GetKeyDown(KeyCode.P) && !characterBase.isAttacking)
+                characterBase.RequestAttackState(AttackType.NormalAir);
+
+            else if (Input.GetKeyDown(KeyCode.O) && !characterBase.isAttacking)
+                characterBase.RequestAttackState(AttackType.SpecialAir);
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.P) && !characterBase.isAttacking)
+                characterBase.RequestAttackState(AttackType.NormalGround);
+
+            else if (Input.GetKeyDown(KeyCode.O) && !characterBase.isAttacking)
+                characterBase.RequestAttackState(AttackType.SpecialGround);
+        }
     }
+}
+
+// Enum for attack types
+public enum AttackType
+{
+    NormalGround,
+    SpecialGround,
+    NormalAir,
+    SpecialAir
 }
