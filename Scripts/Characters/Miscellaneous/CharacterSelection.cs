@@ -38,6 +38,20 @@ public class CharacterSelection : NetworkBehaviour
         SpawnCharacter(1, base.Owner);
     }
 
+    public void SpawnBiker()
+    {
+        if (!IsOwner) return; 
+        characterSelectionPanel.SetActive(false);
+        SpawnCharacter(2, base.Owner);
+    }
+
+    public void SpawnShadowRunner()
+    {
+        if (!IsOwner) return; 
+        characterSelectionPanel.SetActive(false);
+        SpawnCharacter(3, base.Owner);
+    }
+
     [ServerRpc(RequireOwnership = false)]
     private void SpawnCharacter(int spawnIndex, NetworkConnection conn)
     {
