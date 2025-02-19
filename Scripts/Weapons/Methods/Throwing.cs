@@ -36,17 +36,21 @@ public class Throwing : NetworkBehaviour
         weaponBase.isThrown = true;
         weaponBase.pickupTrigger.enabled = true;
         weaponBase.rb.isKinematic = false;
-        weaponBase.rb.AddForce(transform.right * 17.2f, ForceMode.Impulse);
-        ThrowClient();
+
+        float throwDirection = weaponBase.weaponHolder.localPosition.x > 0 ? 1f : -1f;
+        
+        weaponBase.rb.AddForce(Vector3.right * throwDirection * 17.2f, ForceMode.Impulse);
+        ThrowClient(throwDirection);
     }
 
     [ObserversRpc]
-    private void ThrowClient()
+    private void ThrowClient(float throwDirection)
     {
         weaponBase.isThrown = true;
         weaponBase.pickupTrigger.enabled = true;
         weaponBase.rb.isKinematic = false;
-        weaponBase.rb.AddForce(transform.right * 17.2f, ForceMode.Impulse);
+
+        weaponBase.rb.AddForce(Vector3.right * throwDirection * 17.2f, ForceMode.Impulse);
     }
 
     private void ApplyDeceleration()
