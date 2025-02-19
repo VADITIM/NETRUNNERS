@@ -5,13 +5,14 @@ public class Movement
     private Rigidbody rb;
     private SpriteRenderer sprite;
     private LayerMask groundLayer;
+    private CharacterBase characterBase;
     
     private float speed;
-    private float jumpForce;
-    public float groundCheckDistance;
+    private float maxSpeed; 
     private float currentSpeed;
     private float acceleration;
-    private float maxSpeed;
+    private float jumpForce;
+    public float groundCheckDistance;
     private float previousDirection;
 
     private bool hastAuthority;
@@ -37,8 +38,10 @@ public class Movement
         
         GameObject playerObject = rb.gameObject;
         Collider playerCollider = playerObject.GetComponent<Collider>();
-        if (playerCollider != null)
-        {
+        characterBase = rb.GetComponent<CharacterBase>();
+
+        if (playerCollider == null) return;
+
             PhysicMaterial physicsMaterial = new PhysicMaterial
             {
                 dynamicFriction = 0.6f,
@@ -47,7 +50,6 @@ public class Movement
                 bounceCombine = PhysicMaterialCombine.Minimum
             };
             playerCollider.material = physicsMaterial;
-        }
     }
 
     public void FixedUpdate()
@@ -55,11 +57,63 @@ public class Movement
         if (!hastAuthority) return;
        
         CheckGroundStatus();
-        HandleMovement();
+        HandleMovement(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
         HandleJump();
     }
 
-    private float jumpBoostX;
+    private void HandleMovement(float x, float z)
+    {
+        if (Input.GetKey(KeyCode.A)) 
+        {
+            x = -1f;
+        }
+        else if (Input.GetKey(KeyCode.D)) 
+        {
+            x = 1f;
+        }
+
+        if (x != 0)
+        {
+            Accelerate(x);
+        }
+        else
+        {
+            if (isGrounded || isCollidingWithGround)
+            {
+                currentSpeed = 0f;
+                previousDirection = 0f;
+            }
+        }
+
+        HandleAirborneMovement(x, z);
+        characterBase.FlipSprite(x, z);
+    }
+
+    private void HandleAirborneMovement(float x, float z)
+    {
+        float targetSpeed = (isGrounded || isCollidingWithGround) ? currentSpeed : currentSpeed * 0.98f; 
+        Vector3 moveDirection = new Vector3(x != 0 ? x : previousDirection, 0, z) * targetSpeed;
+
+        rb.velocity = new Vector3(moveDirection.x, rb.velocity.y, moveDirection.z);
+    }
+
+    private void Accelerate(float x)
+    {
+        if (Mathf.Sign(x) != Mathf.Sign(previousDirection) && previousDirection != 0)
+        {
+            if (isGrounded) currentSpeed *= 0.02f; 
+            else currentSpeed *= 0.6f;
+        }
+        
+        if (!isGrounded)
+        {
+            currentSpeed = Mathf.Clamp(currentSpeed, 0, maxSpeed * .7f);
+        }
+        else 
+            currentSpeed += acceleration * Time.deltaTime;
+            currentSpeed = Mathf.Clamp(currentSpeed, 0, maxSpeed);
+            previousDirection = x;
+    }
 
     public void HandleJump()
     {
@@ -67,16 +121,8 @@ public class Movement
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
 
-            jumpBoostX = previousDirection * currentSpeed * 2f;
-            HandleAirborneMovement();
-
+            rb.velocity = new Vector3(rb.velocity.x * .5f, rb.velocity.y, rb.velocity.z);
         }
-    }
-
-    private void HandleAirborneMovement()
-    {
-        Debug.Log("JUMPBOOST APPLIED");
-        rb.velocity = new Vector3(jumpBoostX, rb.velocity.y, rb.velocity.z);
     }
 
     private void CheckGroundStatus()
@@ -99,8 +145,6 @@ public class Movement
                 position.y = raycastHit.point.y + 0.01f;
                 rb.transform.position = position;
             }
-
-            jumpBoostX = 0f;
         }
         else
         {
@@ -110,45 +154,5 @@ public class Movement
 
         float sphereRadius = 0.1f;
         isCollidingWithGround = Physics.SphereCast(raycastPosition, sphereRadius, Vector3.down, out RaycastHit sphereHit, groundCheckDistance, groundLayer);
-    }
-
-    private void HandleMovement()
-    {
-        float x = 0f;
-        float z = 0f;
-        if (Input.GetKey(KeyCode.A))
-        {
-            x = -1f;
-        }
-        else if (Input.GetKey(KeyCode.D))
-        {
-            x = 1f;
-        }
-
-        if (x != 0)
-        {
-            if (Mathf.Sign(x) != Mathf.Sign(previousDirection) && previousDirection != 0)
-            {
-                currentSpeed *= 0.05f;
-            }
-
-            currentSpeed += acceleration * Time.deltaTime;
-            currentSpeed = Mathf.Clamp(currentSpeed, 0, maxSpeed);
-            previousDirection = x;
-        }
-        else
-        {
-            currentSpeed = 0f;
-            previousDirection = 0f;
-        }
-
-        float targetSpeed = (isGrounded || isCollidingWithGround) ? currentSpeed : 3f;
-        Vector3 moveDirection = new Vector3(x, 0, z) * targetSpeed;
-        rb.velocity = new Vector3(moveDirection.x, rb.velocity.y, moveDirection.z);
-        
-        if (x > 0)
-            sprite.flipX = false;
-        else if (x < 0)
-            sprite.flipX = true;
     }
 }
