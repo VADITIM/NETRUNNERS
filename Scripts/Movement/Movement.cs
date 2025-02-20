@@ -61,9 +61,6 @@ public class Movement
         HandleJump();
     }
 
-
-#region Movement
-
     private void HandleMovement(float x, float z)
     {
         if (Input.GetKey(KeyCode.A)) 
@@ -108,11 +105,6 @@ public class Movement
             rb.velocity = new Vector3(rb.velocity.x * .5f, rb.velocity.y, rb.velocity.z);
         }
     }
-
-#endregion
-
-
-#region Other
 
     private void Accelerate(float x)
     {
@@ -162,7 +154,5 @@ public class Movement
         float sphereRadius = 0.1f;
         isCollidingWithGround = Physics.SphereCast(raycastPosition, sphereRadius, Vector3.down, out RaycastHit sphereHit, groundCheckDistance, groundLayer);
     }
-
-#endregion
 
 }

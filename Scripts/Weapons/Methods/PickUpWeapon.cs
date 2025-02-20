@@ -8,10 +8,6 @@ public class PickUpWeapon : NetworkBehaviour
     public void Start()
     {
         weaponBase = GetComponent<WeaponBase>();
-        if (weaponBase == null)
-        {
-            Debug.LogError("WeaponBase component not found on " + gameObject.name);
-        }
     }
 
     public void PickUp(Collider other)
@@ -29,11 +25,7 @@ public class PickUpWeapon : NetworkBehaviour
 
     private void ResetToWeaponHolder()
     {
-        if (weaponBase.weaponHolder == null)
-        {
-            Debug.LogError("WeaponHolder is not set on " + gameObject.name);
-            return;
-        }
+        if (weaponBase.weaponHolder == null) return;
 
         weaponBase.rb.isKinematic = true;
         weaponBase.isThrown = false;

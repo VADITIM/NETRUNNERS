@@ -18,9 +18,6 @@ public class Throwing : NetworkBehaviour
         ApplyDeceleration();
     }
 
-
-#region Throw
-
     public void Throw()
     {
         if (!weaponBase) return;
@@ -59,9 +56,6 @@ public class Throwing : NetworkBehaviour
 
         weaponBase.rb.AddForce(Vector3.right * throwDirection * 17.2f, ForceMode.Impulse);
     }
-
-#endregion
-
 
     private void ApplyDeceleration()
     {
