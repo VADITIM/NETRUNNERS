@@ -16,16 +16,29 @@ public abstract class WeaponBase : NetworkBehaviour
     public bool isAttacking;
     public bool isThrown;
 
-    private CharacterBase owner;
-    private Throwing throwing;
-    public Transform weaponHolder;
-    private PickUpWeapon pickUpWeapon;
+    [SerializeField] private CharacterBase owner;
+    [SerializeField] private Throwing throwing;
+    [SerializeField] public Transform weaponHolder;
+    [SerializeField] private PickUpWeapon pickUpWeapon;
+
+    private float maxMoveDistance = 100f;
 
     public void Awake()
     {
         weaponCollider = GetComponent<BoxCollider>();   
         pickUpWeapon = gameObject.AddComponent<PickUpWeapon>();
     }
+
+    protected virtual void Update()
+    {
+        if (throwing == null) return;
+        throwing.FixedUpdate();
+
+        HandleMouseMovement();
+    }
+
+
+#region FishNet Methods
 
     public override void OnStartClient()
     {
@@ -54,17 +67,34 @@ public abstract class WeaponBase : NetworkBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+#endregion
+    
+
+#region Mouse Movement
+
+    public void MoveWeaponHolderOnYAxis(float value)
     {
-        pickUpWeapon.PickUp(other);
+        if (weaponHolder == null || owner == null) return;
+        
+        float baseY = owner.transform.position.y; 
+        float newY = Mathf.Clamp(weaponHolder.position.y + value, baseY - maxMoveDistance, baseY + maxMoveDistance);
+        weaponHolder.position = new Vector3(weaponHolder.position.x, newY, weaponHolder.position.z);
     }
 
-    protected virtual void Update()
+    private void HandleMouseMovement()
     {
-        if (throwing == null) return;
-        throwing.FixedUpdate();
+        if (owner == null) return;
+
+        Vector3 dividePoint = owner.GetDividePoint();
+        Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        
+        bool shouldFlip = mouseWorldPos.x < dividePoint.x;
+        owner.RequestFlipSpriteServer(shouldFlip); 
     }
 
+#endregion
+    
+    
     public void SetThrown(bool value)
     {
         isThrown = value;
@@ -76,14 +106,9 @@ public abstract class WeaponBase : NetworkBehaviour
         }
     }
 
-    public void SetOwner(CharacterBase newOwner)
+    private void OnTriggerEnter(Collider other)
     {
-        owner = newOwner;
-        if (owner != null)
-        {
-            weaponHolder = owner.transform;
-            pickUpWeapon.ResetToWeaponHolder();
-        }
+        pickUpWeapon.PickUp(other);
     }
 
 }

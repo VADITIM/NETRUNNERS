@@ -9,7 +9,7 @@ public class Movement
     
     private float speed;
     private float maxSpeed; 
-    private float currentSpeed;
+    public float currentSpeed;
     private float acceleration;
     private float jumpForce;
     public float groundCheckDistance;
@@ -86,7 +86,6 @@ public class Movement
         }
 
         HandleAirborneMovement(x, z);
-        characterBase.FlipSprite(x, z);
     }
 
     private void HandleAirborneMovement(float x, float z)

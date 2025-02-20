@@ -10,7 +10,7 @@ public abstract class CharacterBase : NetworkBehaviour
     [SerializeField] private SpriteRenderer sprite;
     [SerializeField] private LayerMask groundLayer;
 
-    private float speed = 3.5f;
+    [SerializeField] private float speed = 3.5f;
     private float maxSpeed = 8.5f;
     private float acceleration = 20f;
     private float jumpForce = 8f;
@@ -20,7 +20,9 @@ public abstract class CharacterBase : NetworkBehaviour
     public bool isAttacking;
     public float normalAttackFrames = .682f;
     public float specialAttackFrames = .932f;
-    [SerializeField] private GameObject weaponInstance;
+    private GameObject weaponInstance;
+
+    private Vector3 dividePoint;
     
     public GameObject weaponPrefab;
     public Transform weaponHolder;
@@ -71,6 +73,7 @@ public abstract class CharacterBase : NetworkBehaviour
     }
 #endregion
 
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -83,12 +86,16 @@ public abstract class CharacterBase : NetworkBehaviour
         if (IsOwner && stateMachine != null)
         {
             stateMachine.UpdateState();
+            UpdateDividePoint();
+            HandleMousePosition();
         }
 
         if (movement == null) return;
         movement.FixedUpdate();
     }
 
+
+#region Weapon Holder
     public void MirrorWeaponHolderPosition(bool mirrored)
     {
         if (weaponHolder == null) return;
@@ -104,10 +111,11 @@ public abstract class CharacterBase : NetworkBehaviour
         Vector3 position = initial ? weaponHolderPosition : new Vector3(-weaponHolderPosition.x, weaponHolderPosition.y, weaponHolderPosition.z);
         weaponHolder.localPosition = position;
     }
+#endregion
 
 
+#region States
 
-    // Request state update
     public void RequestStateUpdate(bool isMoving, bool isJumping)
     {
         RequestStateUpdateServerRpc(isMoving, isJumping);
@@ -126,7 +134,6 @@ public abstract class CharacterBase : NetworkBehaviour
         animator.SetBool("isJumping", isJumping);
     }
 
-    // Request attack state update
     public void RequestAttackState(AttackType attackType)
     {
         RequestAttackStateServerRpc(attackType);
@@ -157,22 +164,47 @@ public abstract class CharacterBase : NetworkBehaviour
                 break;
         }
     }
+    
+#endregion
+
 
 #region Flip Sprite
-    public void FlipSprite(float x, float z)
+    
+    private void HandleMousePosition()
     {
-        if (x > 0)
+        Vector3 playerScreenPos = Camera.main.WorldToScreenPoint(transform.position);
+        bool isMouseLeft = Input.mousePosition.x < playerScreenPos.x;
+
+        RequestFlipSpriteServer(isMouseLeft);
+    }
+    
+    
+    private void UpdateDividePoint()
+    {
+        Vector3 origin = transform.position;
+        Vector3 direction = transform.up; 
+        float distance = 100f; 
+
+        if (Physics.Raycast(origin, direction, out RaycastHit hit, distance, groundLayer))
         {
-            RequestFlipSpriteServer(false);
+            dividePoint = hit.point;
         }
-        else if (x < 0)
+        else
         {
-            RequestFlipSpriteServer(true);
+            dividePoint = origin + direction * distance;
         }
+
+        Debug.DrawLine(origin, dividePoint, Color.red); 
     }
 
+    public Vector3 GetDividePoint()
+    {
+        return dividePoint;
+    }
+
+
     [ServerRpc]
-    private void RequestFlipSpriteServer(bool flip)
+    public void RequestFlipSpriteServer(bool flip)
     {
         ApplyFlipSpriteObservers(flip);
     }
@@ -185,6 +217,7 @@ public abstract class CharacterBase : NetworkBehaviour
         InitialWeaponHolderPosition(!flip);
     }
 #endregion
+
 
 #region Attack Routines
     private IEnumerator NormalAttackRoutine()
@@ -232,6 +265,7 @@ public abstract class CharacterBase : NetworkBehaviour
     }
 #endregion
 
+
 #region Start Attack Methods
     public void StartNormalAttack()
     {
@@ -257,6 +291,7 @@ public abstract class CharacterBase : NetworkBehaviour
         animator.SetBool("isAirSpecialAttacking", true);
     }
 #endregion
+
 
 #region End Attack Methods
     public void EndNormalAttack()
@@ -287,6 +322,7 @@ public abstract class CharacterBase : NetworkBehaviour
         animator.Play("idle");
     }
 #endregion
+
 
 #region Death Methods   
     [ServerRpc]
