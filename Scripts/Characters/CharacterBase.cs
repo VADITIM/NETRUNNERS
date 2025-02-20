@@ -1,6 +1,7 @@
 using UnityEngine;
 using FishNet.Object;
 using System.Collections;
+using System.Security.Cryptography.X509Certificates;
 
 public abstract class CharacterBase : NetworkBehaviour
 {
@@ -22,8 +23,6 @@ public abstract class CharacterBase : NetworkBehaviour
     public float specialAttackFrames = .932f;
     private GameObject weaponInstance;
 
-    private Vector3 dividePoint;
-    
     public GameObject weaponPrefab;
     public Transform weaponHolder;
     private Vector3 weaponHolderPosition;
@@ -32,6 +31,7 @@ public abstract class CharacterBase : NetworkBehaviour
     private Movement movement;
     public Abilities abilities; 
     private StateMachine stateMachine;
+    public WeaponBase weaponBase;
 
 
 #region FishNet Methods
@@ -86,8 +86,11 @@ public abstract class CharacterBase : NetworkBehaviour
         if (IsOwner && stateMachine != null)
         {
             stateMachine.UpdateState();
-            UpdateDividePoint();
-            HandleMousePosition();
+            // UpdateDividePoint();
+            // HandleMousePosition();
+            float weaponHolderY = weaponHolder != null ? weaponHolder.position.y : weaponHolderPosition.y;
+            
+            FlipSprite(rb.velocity.x);
         }
 
         if (movement == null) return;
@@ -170,52 +173,44 @@ public abstract class CharacterBase : NetworkBehaviour
 
 #region Flip Sprite
     
-    private void HandleMousePosition()
+    public void FlipSprite(float x)
     {
-        Vector3 playerScreenPos = Camera.main.WorldToScreenPoint(transform.position);
-        bool isMouseLeft = Input.mousePosition.x < playerScreenPos.x;
-
-        RequestFlipSpriteServer(isMouseLeft);
-    }
-    
-    
-    private void UpdateDividePoint()
-    {
-        Vector3 origin = transform.position;
-        Vector3 direction = transform.up; 
-        float distance = 100f; 
-
-        if (Physics.Raycast(origin, direction, out RaycastHit hit, distance, groundLayer))
+        if (x > 0.1f) 
         {
-            dividePoint = hit.point;
+            ServerFlipSprite(false); 
         }
-        else
+        else if (x < -0.1f) 
         {
-            dividePoint = origin + direction * distance;
+            ServerFlipSprite(true);
         }
-
-        Debug.DrawLine(origin, dividePoint, Color.red); 
     }
-
-    public Vector3 GetDividePoint()
-    {
-        return dividePoint;
-    }
-
 
     [ServerRpc]
-    public void RequestFlipSpriteServer(bool flip)
+    public void ServerFlipSprite(bool flip)
     {
-        ApplyFlipSpriteObservers(flip);
+        ObserverFlipSprite(flip);
     }
 
     [ObserversRpc]
-    private void ApplyFlipSpriteObservers(bool flip)
+    private void ObserverFlipSprite(bool flip)
     {
         sprite.flipX = flip;
-        MirrorWeaponHolderPosition(flip);
-        InitialWeaponHolderPosition(!flip);
+
+        if (!weaponBase.isThrown)
+        {
+            MirrorWeaponHolderPosition(flip);
+            InitialWeaponHolderPosition(!flip);
+        }
+
+        if (weaponHolder == null) return;
+
+        MoveWeapon moveWeapon = GetComponent<MoveWeapon>();
+        if (moveWeapon != null)
+        {
+            weaponHolder.position = new Vector3(weaponHolder.position.x, moveWeapon.lastPosY, weaponHolder.position.z);
+        }
     }
+    
 #endregion
 
 
