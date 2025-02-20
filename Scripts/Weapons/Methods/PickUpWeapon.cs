@@ -23,9 +23,16 @@ public class PickUpWeapon : NetworkBehaviour
         {
             weaponBase.isThrown = false;
             weaponBase.pickupTrigger.enabled = false;
+            if (weaponBase.rb == null) return;
             ResetToWeaponHolder();
+            
+            if (weaponBase.rb != null) 
+                weaponBase.rb.isKinematic = true;
         }
     }
+
+
+#region ResetToWeaponHolder
 
     public void ResetToWeaponHolder()
     {
@@ -42,7 +49,7 @@ public class PickUpWeapon : NetworkBehaviour
     [ServerRpc]
     public void ResetToWeaponHolderServer()
     {
-        if (weaponBase.weaponHolder == null) return;
+        if (weaponBase?.weaponHolder == null || weaponBase?.rb == null || IsOwner) return;
 
         weaponBase.rb.isKinematic = true;
         transform.SetParent(weaponBase.weaponHolder);
@@ -55,11 +62,12 @@ public class PickUpWeapon : NetworkBehaviour
     [ObserversRpc]
     public void ResetToWeaponHolderClient()
     {
-        if (weaponBase.weaponHolder == null) return;
-
         weaponBase.rb.isKinematic = true;
         transform.SetParent(weaponBase.weaponHolder);
         transform.localPosition = Vector3.zero;
         transform.localRotation = Quaternion.identity;
     }
+    
+#endregion
+
 }
