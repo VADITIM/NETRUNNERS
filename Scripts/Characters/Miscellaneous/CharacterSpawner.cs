@@ -5,7 +5,7 @@ using FishNet.Connection;
 public class CharacterSpawner : NetworkBehaviour
 {
     [SerializeField] private Transform spawnPoint;
-    [SerializeField] private GameObject[] characterPrefabs; // Array of possible character prefabs
+    [SerializeField] private GameObject[] characterPrefabs; 
 
     public override void OnStartServer()
     {
@@ -17,17 +17,15 @@ public class CharacterSpawner : NetworkBehaviour
             return;
         }
 
-        // Get the selected character for this player
         string selectedCharacter = CharacterManager.GetSelectedCharacter(Owner);
         GameObject characterPrefab = FindCharacterPrefab(selectedCharacter);
 
         if (characterPrefab == null)
         {
             Debug.LogError($"Character prefab '{selectedCharacter}' not found. Using default.");
-            characterPrefab = characterPrefabs[0]; // Fallback to first character
+            characterPrefab = characterPrefabs[0]; 
         }
 
-        // Instantiate and spawn the correct character
         GameObject characterInstance = Instantiate(characterPrefab, spawnPoint.position, spawnPoint.rotation);
         NetworkObject networkObject = characterInstance.GetComponent<NetworkObject>();
 
