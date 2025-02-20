@@ -29,6 +29,8 @@ public class Throwing : NetworkBehaviour
         {
             weaponBase.isThrown = true;
             weaponBase.pickupTrigger.enabled = true;
+            weaponBase.transform.SetParent(null);
+            weaponBase.rb.isKinematic = false;
             ThrowServer();
         }
     }
@@ -38,6 +40,7 @@ public class Throwing : NetworkBehaviour
     {
         weaponBase.isThrown = true;
         weaponBase.pickupTrigger.enabled = true;
+        weaponBase.transform.SetParent(null);
         weaponBase.rb.isKinematic = false;
 
         float throwDirection = weaponBase.weaponHolder.localPosition.x > 0 ? 1f : -1f;
@@ -51,6 +54,7 @@ public class Throwing : NetworkBehaviour
     {
         weaponBase.isThrown = true;
         weaponBase.pickupTrigger.enabled = true;
+        weaponBase.transform.SetParent(null);
         weaponBase.rb.isKinematic = false;
 
         weaponBase.rb.AddForce(Vector3.right * throwDirection * 17.2f, ForceMode.Impulse);

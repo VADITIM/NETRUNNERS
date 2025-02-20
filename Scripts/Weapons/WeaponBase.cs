@@ -26,7 +26,6 @@ public abstract class WeaponBase : NetworkBehaviour
     {
         rb = GetComponent<Rigidbody>();
         weaponCollider = GetComponent<BoxCollider>();   
-        pickUpWeapon = gameObject.AddComponent<PickUpWeapon>();
         moveWeapon = gameObject.AddComponent<MoveWeapon>();
     }
 
@@ -47,6 +46,7 @@ public abstract class WeaponBase : NetworkBehaviour
         rb = GetComponent<Rigidbody>();
         weaponCollider = GetComponent<BoxCollider>();
         throwing = GetComponent<Throwing>();
+        pickUpWeapon = GetComponent<PickUpWeapon>();
 
         pickupTrigger = gameObject.AddComponent<SphereCollider>();
         pickupTrigger.radius = pickupRadius;
@@ -74,10 +74,23 @@ public abstract class WeaponBase : NetworkBehaviour
         isThrown = value;
         if (value)
         {
-            transform.SetParent(null);
-            pickupTrigger.enabled = true;
-            rb.isKinematic = false;
+            DetachWeaponServerRpc();
         }
+    }
+
+    [ServerRpc]
+    private void DetachWeaponServerRpc()
+    {
+        transform.SetParent(null);
+        rb.isKinematic = false;
+        DetachWeaponClientRpc();
+    }
+
+    [ObserversRpc]
+    private void DetachWeaponClientRpc()
+    {
+        transform.SetParent(null);
+        rb.isKinematic = false;
     }
 
     private void OnTriggerEnter(Collider other)
