@@ -1,7 +1,7 @@
-# PIP-3
+# NETRUNNERS
 
 ## Introduction
-**PIP-3** is one of two student projects accounting to the final mark of this years (2025) grade in programming beginning from the 21st of January until the 28th of February.
+**NETRUNNERS** is one of two student projects accounting to the final mark of this years (2025) grade in programming beginning from the 21st of January until the 28th of February.
 
 The center of attention of this project lies within developing a functional multiplayer game using Unity with either a Client-Server or Peer-to-Peer communication.
 
