@@ -25,18 +25,18 @@ public class StateMachine
 
         if (isJumping)
         {
-            if (Input.GetKeyDown(KeyCode.P) && !characterBase.isAttacking)
+            if (Input.GetButtonDown("NormalAbility") && !characterBase.isAttacking)
                 characterBase.RequestAttackState(AttackType.NormalAir);
 
-            else if (Input.GetKeyDown(KeyCode.O) && !characterBase.isAttacking)
+            else if (Input.GetButtonDown("SpecialAbility") && !characterBase.isAttacking)
                 characterBase.RequestAttackState(AttackType.SpecialAir);
         }
         else
         {
-            if (Input.GetKeyDown(KeyCode.P) && !characterBase.isAttacking)
+            if (Input.GetButtonDown("NormalAbility") && !characterBase.isAttacking)
                 characterBase.RequestAttackState(AttackType.NormalGround);
 
-            else if (Input.GetKeyDown(KeyCode.O) && !characterBase.isAttacking)
+            else if (Input.GetButtonDown("SpecialAbility") && !characterBase.isAttacking)
                 characterBase.RequestAttackState(AttackType.SpecialGround);
         }
     }
