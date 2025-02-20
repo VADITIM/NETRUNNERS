@@ -8,6 +8,7 @@ public abstract class WeaponBase : NetworkBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private float damage;
     [SerializeField] private float pickupRadius = 0.4f;
+    
     public BoxCollider weaponCollider;
     public Rigidbody rb;
     public SphereCollider pickupTrigger;
@@ -21,6 +22,7 @@ public abstract class WeaponBase : NetworkBehaviour
     [SerializeField] public Transform weaponHolder;
     [SerializeField] private PickUpWeapon pickUpWeapon;
     [SerializeField] private MoveWeapon moveWeapon;
+    [SerializeField] Respawn respawn;
 
     public void Awake()
     {
@@ -33,9 +35,7 @@ public abstract class WeaponBase : NetworkBehaviour
     {
         if (throwing == null) return;
         throwing.FixedUpdate();
-
     }
-
 
 #region FishNet Methods
 
@@ -68,7 +68,7 @@ public abstract class WeaponBase : NetworkBehaviour
     }
 
 #endregion
-    
+
     public void SetThrown(bool value)
     {
         isThrown = value;
@@ -99,4 +99,27 @@ public abstract class WeaponBase : NetworkBehaviour
         pickUpWeapon.PickUp(other);
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (!IsOwner) return;
+
+        GameObject hitObject = collision.gameObject;
+        CharacterBase hitPlayer = hitObject.GetComponent<CharacterBase>();
+
+        if (hitPlayer == null) return;
+
+        if ((gameObject.tag == "Weapon1" && hitObject.CompareTag("Player2")) ||
+            (gameObject.tag == "Weapon2" && hitObject.CompareTag("Player1")))
+        {
+            Debug.Log("Hit player: " + hitPlayer.name);
+            DisablePlayerServerRpc(hitPlayer);
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void DisablePlayerServerRpc(CharacterBase player)
+    {
+        if (player == null) return;
+        player.GetComponent<Respawn>()?.DisablePlayer();
+    }
 }
