@@ -42,7 +42,6 @@ public class StateMachine
     }
 }
 
-// Enum for attack types
 public enum AttackType
 {
     NormalGround,

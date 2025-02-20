@@ -1,8 +1,6 @@
 using UnityEngine;
 using FishNet.Object;
 using FishNet.Connection;
-using FishNet.Object.Synchronizing;
-using FishNet.Managing;
 
 public class CharacterSelection : NetworkBehaviour
 {
