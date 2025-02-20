@@ -1,14 +1,13 @@
 using UnityEngine;
 using FishNet.Object;
 using System.Collections;
-using System.Security.Cryptography.X509Certificates;
 
 public abstract class CharacterBase : NetworkBehaviour
 {
     public int PlayerID { get; private set; }
 
     [SerializeField] private Animator animator;
-    [SerializeField] private SpriteRenderer sprite;
+    [SerializeField] public SpriteRenderer sprite;
     [SerializeField] private LayerMask groundLayer;
 
     [SerializeField] private float speed = 3.5f;
@@ -86,8 +85,6 @@ public abstract class CharacterBase : NetworkBehaviour
         if (IsOwner && stateMachine != null)
         {
             stateMachine.UpdateState();
-            // UpdateDividePoint();
-            // HandleMousePosition();
             float weaponHolderY = weaponHolder != null ? weaponHolder.position.y : weaponHolderPosition.y;
             
             FlipSprite(rb.velocity.x);
@@ -99,6 +96,7 @@ public abstract class CharacterBase : NetworkBehaviour
 
 
 #region Weapon Holder
+
     public void MirrorWeaponHolderPosition(bool mirrored)
     {
         if (weaponHolder == null) return;
@@ -172,7 +170,7 @@ public abstract class CharacterBase : NetworkBehaviour
 
 
 #region Flip Sprite
-    
+
     public void FlipSprite(float x)
     {
         if (x > 0.1f) 
@@ -188,6 +186,18 @@ public abstract class CharacterBase : NetworkBehaviour
     [ServerRpc]
     public void ServerFlipSprite(bool flip)
     {
+        sprite.flipX = flip;
+        if (!weaponBase.isThrown)
+        {
+            MirrorWeaponHolderPosition(flip);
+            InitialWeaponHolderPosition(!flip);
+        }
+        MoveWeapon moveWeapon = GetComponent<MoveWeapon>();
+        if (moveWeapon != null)
+        {
+            weaponHolder.position = new Vector3(weaponHolder.position.x, moveWeapon.lastPosY, weaponHolder.position.z);
+        }
+
         ObserverFlipSprite(flip);
     }
 
@@ -195,14 +205,13 @@ public abstract class CharacterBase : NetworkBehaviour
     private void ObserverFlipSprite(bool flip)
     {
         sprite.flipX = flip;
-
         if (!weaponBase.isThrown)
         {
             MirrorWeaponHolderPosition(flip);
             InitialWeaponHolderPosition(!flip);
         }
-
-        if (weaponHolder == null) return;
+        if (weaponHolder == null)
+            return;
 
         MoveWeapon moveWeapon = GetComponent<MoveWeapon>();
         if (moveWeapon != null)
@@ -210,7 +219,7 @@ public abstract class CharacterBase : NetworkBehaviour
             weaponHolder.position = new Vector3(weaponHolder.position.x, moveWeapon.lastPosY, weaponHolder.position.z);
         }
     }
-    
+
 #endregion
 
 
