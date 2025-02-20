@@ -16,17 +16,18 @@ public abstract class WeaponBase : NetworkBehaviour
     public bool isAttacking;
     public bool isThrown;
 
-    [SerializeField] private CharacterBase owner;
+    [SerializeField] public CharacterBase owner;
     [SerializeField] private Throwing throwing;
     [SerializeField] public Transform weaponHolder;
     [SerializeField] private PickUpWeapon pickUpWeapon;
-
-    private float maxMoveDistance = 100f;
+    [SerializeField] private MoveWeapon moveWeapon;
 
     public void Awake()
     {
+        rb = GetComponent<Rigidbody>();
         weaponCollider = GetComponent<BoxCollider>();   
         pickUpWeapon = gameObject.AddComponent<PickUpWeapon>();
+        moveWeapon = gameObject.AddComponent<MoveWeapon>();
     }
 
     protected virtual void Update()
@@ -34,7 +35,6 @@ public abstract class WeaponBase : NetworkBehaviour
         if (throwing == null) return;
         throwing.FixedUpdate();
 
-        HandleMouseMovement();
     }
 
 
@@ -69,32 +69,6 @@ public abstract class WeaponBase : NetworkBehaviour
 
 #endregion
     
-
-#region Mouse Movement
-
-    public void MoveWeaponHolderOnYAxis(float value)
-    {
-        if (weaponHolder == null || owner == null) return;
-        
-        float baseY = owner.transform.position.y; 
-        float newY = Mathf.Clamp(weaponHolder.position.y + value, baseY - maxMoveDistance, baseY + maxMoveDistance);
-        weaponHolder.position = new Vector3(weaponHolder.position.x, newY, weaponHolder.position.z);
-    }
-
-    private void HandleMouseMovement()
-    {
-        if (owner == null) return;
-
-        Vector3 dividePoint = owner.GetDividePoint();
-        Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        
-        bool shouldFlip = mouseWorldPos.x < dividePoint.x;
-        owner.RequestFlipSpriteServer(shouldFlip); 
-    }
-
-#endregion
-    
-    
     public void SetThrown(bool value)
     {
         isThrown = value;
@@ -108,6 +82,7 @@ public abstract class WeaponBase : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (pickUpWeapon == null) return;
         pickUpWeapon.PickUp(other);
     }
 
