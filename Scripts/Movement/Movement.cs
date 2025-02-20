@@ -61,6 +61,9 @@ public class Movement
         HandleJump();
     }
 
+
+#region Movement
+
     private void HandleMovement(float x, float z)
     {
         if (Input.GetKey(KeyCode.A)) 
@@ -96,6 +99,21 @@ public class Movement
         rb.velocity = new Vector3(moveDirection.x, rb.velocity.y, moveDirection.z);
     }
 
+    public void HandleJump()
+    {
+        if ((isGrounded || isCollidingWithGround) && Input.GetButtonDown("Jump"))
+        {
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+
+            rb.velocity = new Vector3(rb.velocity.x * .5f, rb.velocity.y, rb.velocity.z);
+        }
+    }
+
+#endregion
+
+
+#region Other
+
     private void Accelerate(float x)
     {
         if (Mathf.Sign(x) != Mathf.Sign(previousDirection) && previousDirection != 0)
@@ -112,16 +130,6 @@ public class Movement
             currentSpeed += acceleration * Time.deltaTime;
             currentSpeed = Mathf.Clamp(currentSpeed, 0, maxSpeed);
             previousDirection = x;
-    }
-
-    public void HandleJump()
-    {
-        if ((isGrounded || isCollidingWithGround) && Input.GetButtonDown("Jump"))
-        {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-
-            rb.velocity = new Vector3(rb.velocity.x * .5f, rb.velocity.y, rb.velocity.z);
-        }
     }
 
     private void CheckGroundStatus()
@@ -154,4 +162,7 @@ public class Movement
         float sphereRadius = 0.1f;
         isCollidingWithGround = Physics.SphereCast(raycastPosition, sphereRadius, Vector3.down, out RaycastHit sphereHit, groundCheckDistance, groundLayer);
     }
+
+#endregion
+
 }
