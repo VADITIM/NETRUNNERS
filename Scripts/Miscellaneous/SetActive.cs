@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class SetActiveManager : MonoBehaviour
+public class SetActive : MonoBehaviour
 {
     public GameObject manager;
 

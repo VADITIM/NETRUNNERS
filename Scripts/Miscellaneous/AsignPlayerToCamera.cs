@@ -1,7 +1,7 @@
 using UnityEngine;
 using FishNet.Object;
 
-public class PlayerSpawner : NetworkBehaviour
+public class AsignPlayerToCamera : NetworkBehaviour
 {
     public override void OnStartNetwork()
     {

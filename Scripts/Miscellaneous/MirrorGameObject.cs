@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ObjectReposition : MonoBehaviour
+public class MirrorGameObject : MonoBehaviour
 {
     private bool done = false;
 
@@ -26,7 +26,7 @@ public class ObjectReposition : MonoBehaviour
         GameObject newObject = Instantiate(objectToModify, newPosition, newRotation);
         newObject.name = objectToModify.name + "_Copy";
 
-        Destroy(newObject.GetComponent<ObjectReposition>());
+        Destroy(newObject.GetComponent<MirrorGameObject>());
 
         // Debug.Log("Object " + objectToModify.name + " has been repositioned to " + newPosition + " and rotated to " + newRotation.eulerAngles);
     }
