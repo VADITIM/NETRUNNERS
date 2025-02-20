@@ -32,8 +32,8 @@ public abstract class CharacterBase : NetworkBehaviour
     private StateMachine stateMachine;
     public WeaponBase weaponBase;
 
+#region FishNet Networking
 
-#region FishNet Methods
     public override void OnStartClient()
     {
         base.OnStartClient();
@@ -72,7 +72,6 @@ public abstract class CharacterBase : NetworkBehaviour
     }
 #endregion
 
-
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -94,6 +93,56 @@ public abstract class CharacterBase : NetworkBehaviour
         movement.FixedUpdate();
     }
 
+#region Flip Sprites
+
+    public void FlipSprite(float x)
+    {
+        if (x > 1f) 
+        {
+            ServerFlipSprite(false); 
+        }
+        else if (x < -1f) 
+        {
+            ServerFlipSprite(true);
+        }
+    }
+
+    [ServerRpc]
+    public void ServerFlipSprite(bool flip)
+    {
+        sprite.flipX = flip;
+        if (!weaponBase.isThrown)
+        {
+            MirrorWeaponHolderPosition(flip);
+            InitialWeaponHolderPosition(!flip);
+        }
+        MoveWeapon moveWeapon = GetComponent<MoveWeapon>();
+        if (moveWeapon != null)
+        {
+            weaponHolder.position = new Vector3(weaponHolder.position.x, moveWeapon.lastPosY, weaponHolder.position.z);
+        }
+
+        ObserverFlipSprite(flip);
+    }
+
+    [ObserversRpc]
+    private void ObserverFlipSprite(bool flip)
+    {
+        sprite.flipX = flip;
+        if (!weaponBase.isThrown)
+        {
+            MirrorWeaponHolderPosition(flip);
+            InitialWeaponHolderPosition(!flip);
+        }
+        if (weaponHolder == null)
+            return;
+
+        MoveWeapon moveWeapon = GetComponent<MoveWeapon>();
+        if (moveWeapon != null)
+        {
+            weaponHolder.position = new Vector3(weaponHolder.position.x, moveWeapon.lastPosY, weaponHolder.position.z);
+        }
+    }
 
 #region Weapon Holder
 
@@ -114,6 +163,7 @@ public abstract class CharacterBase : NetworkBehaviour
     }
 #endregion
 
+#endregion
 
 #region States
 
@@ -168,61 +218,6 @@ public abstract class CharacterBase : NetworkBehaviour
     
 #endregion
 
-
-#region Flip Sprite
-
-    public void FlipSprite(float x)
-    {
-        if (x > 0.1f) 
-        {
-            ServerFlipSprite(false); 
-        }
-        else if (x < -0.1f) 
-        {
-            ServerFlipSprite(true);
-        }
-    }
-
-    [ServerRpc]
-    public void ServerFlipSprite(bool flip)
-    {
-        sprite.flipX = flip;
-        if (!weaponBase.isThrown)
-        {
-            MirrorWeaponHolderPosition(flip);
-            InitialWeaponHolderPosition(!flip);
-        }
-        MoveWeapon moveWeapon = GetComponent<MoveWeapon>();
-        if (moveWeapon != null)
-        {
-            weaponHolder.position = new Vector3(weaponHolder.position.x, moveWeapon.lastPosY, weaponHolder.position.z);
-        }
-
-        ObserverFlipSprite(flip);
-    }
-
-    [ObserversRpc]
-    private void ObserverFlipSprite(bool flip)
-    {
-        sprite.flipX = flip;
-        if (!weaponBase.isThrown)
-        {
-            MirrorWeaponHolderPosition(flip);
-            InitialWeaponHolderPosition(!flip);
-        }
-        if (weaponHolder == null)
-            return;
-
-        MoveWeapon moveWeapon = GetComponent<MoveWeapon>();
-        if (moveWeapon != null)
-        {
-            weaponHolder.position = new Vector3(weaponHolder.position.x, moveWeapon.lastPosY, weaponHolder.position.z);
-        }
-    }
-
-#endregion
-
-
 #region Attack Routines
     private IEnumerator NormalAttackRoutine()
     {
@@ -269,7 +264,6 @@ public abstract class CharacterBase : NetworkBehaviour
     }
 #endregion
 
-
 #region Start Attack Methods
     public void StartNormalAttack()
     {
@@ -295,7 +289,6 @@ public abstract class CharacterBase : NetworkBehaviour
         animator.SetBool("isAirSpecialAttacking", true);
     }
 #endregion
-
 
 #region End Attack Methods
     public void EndNormalAttack()
@@ -326,20 +319,4 @@ public abstract class CharacterBase : NetworkBehaviour
         animator.Play("idle");
     }
 #endregion
-
-
-#region Death Methods   
-    [ServerRpc]
-    public void DisablePlayerServerRpc()
-    {
-        DisablePlayerObserversRpc();
-    }
-
-    [ObserversRpc]
-    private void DisablePlayerObserversRpc()
-    {
-        gameObject.SetActive(false);
-    }
-#endregion
-
 }
