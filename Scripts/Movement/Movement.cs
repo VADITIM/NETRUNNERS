@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class Movement
 {
@@ -7,29 +8,47 @@ public class Movement
     private LayerMask groundLayer;
     private CharacterBase characterBase;
     
+    private bool hastAuthority;
+
     private float speed;
-    private float maxSpeed; 
     public float currentSpeed;
+    private float maxSpeed; 
+    private bool isMaxSpeed;
     private float acceleration;
+
     private float jumpForce;
+    private float gravity;
     public float groundCheckDistance;
+    
     private float previousDirection;
 
-    private bool hastAuthority;
 
     public bool isGrounded;
     private bool isCollidingWithGround; 
 
-    public Movement(Rigidbody rb, SpriteRenderer sprite, LayerMask groundLayer, float speed, float jumpForce, float groundCheckDistance, float acceleration, float maxSpeed)
+    public float jumpBoostX;
+    private bool jumpBoostReady;
+
+    private float cooldown = 1f;
+    private float cooldownTimer = 0f;
+    private bool timerActive = false;
+
+    private MonoBehaviour coroutineHandler;
+
+    public Movement(Rigidbody rb, SpriteRenderer sprite, LayerMask groundLayer, float gravity, float speed, float currentSpeed, float jumpBoostX, float jumpForce, float groundCheckDistance, float acceleration, float maxSpeed, MonoBehaviour coroutineHandler)
     {
         this.rb = rb;
         this.sprite = sprite;
         this.groundLayer = groundLayer;
         this.speed = speed;
-        this.jumpForce = jumpForce;
-        this.groundCheckDistance = groundCheckDistance;
-        this.acceleration = acceleration;
         this.maxSpeed = maxSpeed;
+        this.acceleration = acceleration;
+        this.currentSpeed = currentSpeed;
+        this.jumpForce = jumpForce;
+        this.jumpBoostX = jumpBoostX;
+        this.gravity = gravity;
+        this.groundCheckDistance = groundCheckDistance;
+        this.coroutineHandler = coroutineHandler;
 
         hastAuthority = true;
         
@@ -42,14 +61,14 @@ public class Movement
 
         if (playerCollider == null) return;
 
-            PhysicMaterial physicsMaterial = new PhysicMaterial
-            {
-                dynamicFriction = 0.6f,
-                staticFriction = 0.6f,
-                frictionCombine = PhysicMaterialCombine.Maximum,
-                bounceCombine = PhysicMaterialCombine.Minimum
-            };
-            playerCollider.material = physicsMaterial;
+        PhysicMaterial physicsMaterial = new PhysicMaterial
+        {
+            dynamicFriction = 0.6f,
+            staticFriction = 0.6f,
+            frictionCombine = PhysicMaterialCombine.Maximum,
+            bounceCombine = PhysicMaterialCombine.Minimum
+        };
+        playerCollider.material = physicsMaterial;
     }
 
     public void FixedUpdate()
@@ -58,9 +77,58 @@ public class Movement
        
         CheckGroundStatus();
         HandleMovement(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+        // CheckVelocity();
         HandleJump();
+        ApplyGravity();
     }
 
+
+    private Coroutine jumpBoostCoroutine;
+
+    // private void CheckVelocity()
+    // {
+    //     if (currentSpeed >= maxSpeed)
+    //     {
+    //         if (!isMaxSpeed)
+    //         {
+    //             isMaxSpeed = true;
+    //             Debug.Log("Max Speed Reached");
+
+    //             if (jumpBoostCoroutine == null)
+    //             {
+    //                 jumpBoostCoroutine = coroutineHandler.StartCoroutine(JumpBoostCooldown());
+    //             }
+    //         }
+    //     }
+    //     else
+    //     {
+    //         isMaxSpeed = false;
+    //         jumpBoostReady = false;
+
+    //         if (jumpBoostCoroutine != null)
+    //         {
+    //             coroutineHandler.StopCoroutine(jumpBoostCoroutine);
+    //             jumpBoostCoroutine = null;
+    //         }
+    //     }
+    // }
+
+    // private IEnumerator JumpBoostCooldown()
+    // {
+    //     float elapsedTime = 0f;
+    //     Debug.Log("Timer started");
+
+    //     while (elapsedTime < cooldown)
+    //     {
+    //         elapsedTime += Time.deltaTime;
+    //         yield return null;
+    //     }
+
+    //     jumpBoostReady = true;
+    //     jumpBoostCoroutine = null;
+    //     Debug.Log("Timer ended JumpBoostReady");
+    // }
+    
     private void HandleMovement(float x, float z)
     {
         if (Input.GetKey(KeyCode.A)) 
@@ -100,10 +168,15 @@ public class Movement
     {
         if ((isGrounded || isCollidingWithGround) && Input.GetButtonDown("Jump"))
         {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-
-            rb.velocity = new Vector3(rb.velocity.x * .5f, rb.velocity.y, rb.velocity.z);
+            rb.velocity = new Vector3(rb.velocity.x, jumpForce, rb.velocity.z);
+            isMaxSpeed = false;
         }
+        // else if (jumpBoostReady && Input.GetButton("Jump"))
+        // {
+        //     rb.velocity = new Vector3(rb.velocity.x * jumpBoostX, jumpForce, rb.velocity.z);
+        //     jumpBoostReady = false;
+        //     Debug.Log("Jump Boost Used");
+        // }
     }
 
     private void Accelerate(float x)
@@ -119,9 +192,11 @@ public class Movement
             currentSpeed = Mathf.Clamp(currentSpeed, 0, maxSpeed * .7f);
         }
         else 
+        {
             currentSpeed += acceleration * Time.deltaTime;
             currentSpeed = Mathf.Clamp(currentSpeed, 0, maxSpeed);
-            previousDirection = x;
+        }
+        previousDirection = x;
     }
 
     private void CheckGroundStatus()
@@ -155,4 +230,11 @@ public class Movement
         isCollidingWithGround = Physics.SphereCast(raycastPosition, sphereRadius, Vector3.down, out RaycastHit sphereHit, groundCheckDistance, groundLayer);
     }
 
+    private void ApplyGravity()
+    {
+        if (!isGrounded)
+        {
+            rb.AddForce(Vector3.down * gravity, ForceMode.Acceleration);
+        }
+    }
 }

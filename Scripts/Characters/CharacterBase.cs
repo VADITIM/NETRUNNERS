@@ -11,10 +11,13 @@ public abstract class CharacterBase : NetworkBehaviour
     [SerializeField] private LayerMask groundLayer;
 
     [SerializeField] private float speed = 3.5f;
-    private float maxSpeed = 8.5f;
+    public float maxSpeed = 8.5f;
+    public float currentSpeed;
     private float acceleration = 20f;
+
     private float jumpForce = 8f;
     private float jumpBoostX = 10f;
+    private float gravity = 14.5f;
     private float groundCheckDistance = 0.18f;
 
     public bool isAttacking;
@@ -40,7 +43,7 @@ public abstract class CharacterBase : NetworkBehaviour
         
         if (IsOwner)
         {
-            movement = new Movement(rb, sprite, groundLayer, speed, jumpForce, groundCheckDistance, acceleration, maxSpeed);
+            movement = new Movement(rb, sprite, groundLayer, speed, jumpForce, currentSpeed, jumpBoostX, gravity, groundCheckDistance, acceleration, maxSpeed, this);
             stateMachine = new StateMachine(movement, animator, this);
             gameObject.tag = "Player1";
         }
