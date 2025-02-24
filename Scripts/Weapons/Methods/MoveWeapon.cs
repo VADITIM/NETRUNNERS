@@ -5,8 +5,8 @@ public class MoveWeapon : NetworkBehaviour
 {
     public float lastPosY { get; private set; }
     
-    private const float SNAPDISTANCE = .3f;
-    private const float MAXMOVEDISTANCE = .6f;
+    private const float SNAPDISTANCE = .25f;
+    private const float MAXMOVEDISTANCE = .5f;
     private float currentYOffset = 0f;
     
     private WeaponBase weaponBase;
@@ -25,13 +25,13 @@ public class MoveWeapon : NetworkBehaviour
     {
         if (!weaponBase || !base.HasAuthority || weaponBase.weaponHolder == null || weaponBase.owner == null) return;
         
-        float baseY = weaponBase.owner.transform.position.y + .5f;
+        float baseY = weaponBase.owner.transform.position.y + .8f;
 
-        if (Input.GetKeyDown(KeyCode.UpArrow) && currentYOffset < MAXMOVEDISTANCE)
+        if (Input.GetKeyDown(KeyCode.W) && currentYOffset < MAXMOVEDISTANCE)
         {
             currentYOffset += SNAPDISTANCE;
         }
-        else if (Input.GetKeyDown(KeyCode.DownArrow) && currentYOffset > -MAXMOVEDISTANCE)
+        else if (Input.GetKeyDown(KeyCode.S) && currentYOffset > -MAXMOVEDISTANCE)
         {
             currentYOffset -= SNAPDISTANCE;
         }
