@@ -4,13 +4,15 @@ public class MirrorGameObject : MonoBehaviour
 {
     private bool done = false;
 
+    private GameObject parentObject;
+
     void Start()
     {
-        if (!done)
-        {
-            done = true;
-            RepositionObject();
-        }
+        parentObject = GameObject.Find("Game Field");
+
+        if (done) return;
+        done = true;
+        RepositionObject();
     }
 
     private void RepositionObject()
@@ -26,8 +28,11 @@ public class MirrorGameObject : MonoBehaviour
         GameObject newObject = Instantiate(objectToModify, newPosition, newRotation);
         newObject.name = objectToModify.name + "_Copy";
 
-        Destroy(newObject.GetComponent<MirrorGameObject>());
+        if (parentObject != null)
+        {
+            newObject.transform.SetParent(parentObject.transform);
+        }
 
-        // Debug.Log("Object " + objectToModify.name + " has been repositioned to " + newPosition + " and rotated to " + newRotation.eulerAngles);
+        Destroy(newObject.GetComponent<MirrorGameObject>());
     }
 }
