@@ -4,7 +4,10 @@ using FishNet.Object;
 public class Throwing : NetworkBehaviour 
 {
     private WeaponBase weaponBase;
-    private float decelerationFactor = .98f; 
+    private float decelerationFactor = 0.985f; 
+    private float initialThrowSpeed = 37.2f;
+    private float gravityFactor = -.81f;
+    private float groundCheckDistance = 0.2f;
 
     public override void OnStartClient()
     {
@@ -42,7 +45,7 @@ public class Throwing : NetworkBehaviour
 
         float throwDirection = weaponBase.weaponHolder.localPosition.x > 0 ? 1f : -1f;
         
-        weaponBase.rb.AddForce(Vector3.right * throwDirection * 17.2f, ForceMode.Impulse);
+        weaponBase.rb.velocity = new Vector3(throwDirection * initialThrowSpeed, 0, gravityFactor);
         ThrowClient(throwDirection);
     }
 
@@ -54,7 +57,7 @@ public class Throwing : NetworkBehaviour
         weaponBase.transform.SetParent(null);
         weaponBase.rb.isKinematic = false;
 
-        weaponBase.rb.AddForce(Vector3.right * throwDirection * 17.2f, ForceMode.Impulse);
+        weaponBase.rb.velocity = new Vector3(throwDirection * initialThrowSpeed, 0, gravityFactor);
     }
 
     private void ApplyDeceleration()
@@ -63,7 +66,23 @@ public class Throwing : NetworkBehaviour
 
         if (weaponBase.isThrown && !weaponBase.rb.isKinematic)
         {
-            weaponBase.rb.velocity *= decelerationFactor;
+            RaycastHit hit;
+            if (Physics.Raycast(weaponBase.transform.position, Vector3.down, out hit, groundCheckDistance))
+            {
+                weaponBase.rb.velocity = new Vector3(
+                    weaponBase.rb.velocity.x * decelerationFactor,
+                    Mathf.Max(0, weaponBase.rb.velocity.y),
+                    weaponBase.rb.velocity.z
+                );
+            }
+            else
+            {
+                weaponBase.rb.velocity = new Vector3(
+                    weaponBase.rb.velocity.x * decelerationFactor,
+                    weaponBase.rb.velocity.y + gravityFactor * Time.fixedDeltaTime,
+                    weaponBase.rb.velocity.z
+                );
+            }
         }
     }
 }
