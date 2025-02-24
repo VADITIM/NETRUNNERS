@@ -12,19 +12,19 @@ public class CameraLogic : MonoBehaviour
 
     [Header("Split Screen Settings")]
     [SerializeField] private float swapDelay = 1.25f;
-    [SerializeField] private float swapOffset = 5f;
-    [SerializeField] private float resetDistance = 9.98f;
+    private float swapOffset = 20f;
+    private float resetDistance = 0f;
     [SerializeField, Range(0, 1)] private float leftSplitPoint = 0.25f;
     [SerializeField, Range(0, 1)] private float rightSplitPoint = 0.75f;
     [SerializeField] private float minDistanceToTrigger = 0f;
-    [SerializeField] private float maxAllowedDistance = 20f;
+    [SerializeField] private float maxAllowedDistance = 25f;
 
     private Camera cam;
     public Transform player1;
     public Transform player2;
 
-    private int player1ID = 0;
-    private int player2ID = 1;
+    public int player1ID = 0;
+    public int player2ID = 1;
 
     private float zoneTimer = 0f;
     private bool isTimerActive = false;
@@ -79,7 +79,7 @@ public class CameraLogic : MonoBehaviour
             transform.position = Vector3.Lerp(transform.position, targetPosition, smoothSpeed * Time.deltaTime);
         }
     }
-
+    
     private bool CheckMaxDistance()
     {
         float distance = Mathf.Abs(player1.position.x - player2.position.x);
@@ -205,14 +205,23 @@ public class CameraLogic : MonoBehaviour
     public void AssignPlayerDynamically(NetworkObject playerNetworkObject)
     {
         int ownerID = playerNetworkObject.OwnerId;
+
         if (ownerID == 0)
         {
-            player1 = playerNetworkObject.transform; 
+            player1 = playerNetworkObject.transform;
             player1ID = playerNetworkObject.ObjectId;
         }
         else if (ownerID == 1)
-            player2 = playerNetworkObject.transform; 
+        {
+            player2 = playerNetworkObject.transform;
             player2ID = playerNetworkObject.ObjectId;
+        }
+
+        ClientNetworkHandler clientNetworkHandler = FindObjectOfType<ClientNetworkHandler>();
+        if (clientNetworkHandler != null)
+        {
+            clientNetworkHandler.OnPlayerAssigned(playerNetworkObject);
+        }
     }
 
     public void AssignPlayers(NetworkObject p1, NetworkObject p2)
@@ -230,21 +239,19 @@ public class CameraLogic : MonoBehaviour
         }
     }
 
-    // necessary for future implementation
-    // public void RemovePlayer(NetworkObject playerNetworkObject)
-    // {
-    //     if (playerNetworkObject.ObjectId == player1ID)
-    //     {
-    //         player1 = null;
-    //         player1ID = -1;
-    //     }
-    //     else if (playerNetworkObject.ObjectId == player2ID)
-    //     {
-    //         player2 = null;
-    //         player2ID = -1;
-    //     }
-    // }
+    public void RemovePlayer(NetworkObject playerNetworkObject)
+    {
+        if (playerNetworkObject.ObjectId == player1ID)
+        {
+            player1 = null;
+            player1ID = -1;
+        }
+        else if (playerNetworkObject.ObjectId == player2ID)
+        {
+            player2 = null;
+            player2ID = -1;
+        }
+    }
 
-    // add this when killing player
-    // FindObjectOfType<CameraLogic>().RemovePlayer(this.GetComponent<NetworkObject>());
+    
 }
