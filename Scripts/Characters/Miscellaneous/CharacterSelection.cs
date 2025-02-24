@@ -50,6 +50,13 @@ public class CharacterSelection : NetworkBehaviour
         SpawnCharacter(3, base.Owner);
     }
 
+    public void SpawnCyberBee()
+    {
+        if (!IsOwner) return; 
+        characterSelectionPanel.SetActive(false);
+        SpawnCharacter(4, base.Owner);
+    }
+
     [ServerRpc(RequireOwnership = false)]
     private void SpawnCharacter(int spawnIndex, NetworkConnection conn)
     {
