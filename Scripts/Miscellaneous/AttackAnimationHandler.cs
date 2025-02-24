@@ -11,7 +11,6 @@ public class AttackAnimationHandler : MonoBehaviour
 
     public void StartAttack()
     {
-
         if (characterBase != null)
         {
             characterBase.StartNormalAttack();
