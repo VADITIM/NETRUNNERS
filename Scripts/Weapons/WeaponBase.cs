@@ -6,35 +6,34 @@ public abstract class WeaponBase : NetworkBehaviour
     [SerializeField] private LayerMask hitLayer;
     [SerializeField] private SpriteRenderer sprite;
     [SerializeField] private Animator animator;
-    [SerializeField] private float damage;
-    [SerializeField] private float pickupRadius = 0.4f;
+    private float pickupRadius = 0.4f;
     
-    public BoxCollider weaponCollider;
     public Rigidbody rb;
-    public SphereCollider pickupTrigger;
+    public BoxCollider damageCollider;
+    public CapsuleCollider generalCollider;
+    public SphereCollider pickupCollider;
 
-    public bool isBroken;
-    public bool isAttacking;
-    public bool isThrown;
+    public bool isBroken = false;
+    public bool isThrown = false;
 
     [SerializeField] public CharacterBase owner;
-    [SerializeField] private Throwing throwing;
     [SerializeField] public Transform weaponHolder;
     [SerializeField] private PickUpWeapon pickUpWeapon;
-    [SerializeField] private MoveWeapon moveWeapon;
-    [SerializeField] Respawn respawn;
 
-    public void Awake()
-    {
-        rb = GetComponent<Rigidbody>();
-        weaponCollider = GetComponent<BoxCollider>();   
-        moveWeapon = gameObject.AddComponent<MoveWeapon>();
-    }
+    // public void Awake()
+    // {
+    //     rb = GetComponent<Rigidbody>();
+    //     damageCollider = GetComponent<BoxCollider>();
+    // }
 
-    protected virtual void Update()
+    protected virtual void Update() {FlipSprite();}
+
+ 
+    private void FlipSprite()
     {
-        if (throwing == null) return;
-        throwing.FixedUpdate();
+        if (owner == null || isThrown) return;
+
+        sprite.flipX = owner.sprite.flipX;
     }
 
 #region FishNet Methods
@@ -44,26 +43,29 @@ public abstract class WeaponBase : NetworkBehaviour
         base.OnStartClient();
 
         rb = GetComponent<Rigidbody>();
-        weaponCollider = GetComponent<BoxCollider>();
-        throwing = GetComponent<Throwing>();
+        damageCollider = GetComponent<BoxCollider>();
+        generalCollider = GetComponent<CapsuleCollider>();
         pickUpWeapon = GetComponent<PickUpWeapon>();
+        
+        pickupCollider = gameObject.AddComponent<SphereCollider>();
 
-        pickupTrigger = gameObject.AddComponent<SphereCollider>();
-        pickupTrigger.radius = pickupRadius;
-        pickupTrigger.isTrigger = true;
-        pickupTrigger.enabled = false;
+        pickupCollider.radius = pickupRadius;
+        pickupCollider.isTrigger = true;
+        pickupCollider.enabled = false;
+
+        damageCollider.enabled = false; 
 
         weaponHolder = transform.parent;
 
         if (base.HasAuthority)
         {
             gameObject.tag = "Weapon1";
-            pickupTrigger.tag = "Weapon1";
+            pickupCollider.tag = "Weapon1";
         }
         else
         {
             gameObject.tag = "Weapon2";
-            pickupTrigger.tag = "Weapon2";
+            pickupCollider.tag = "Weapon2";
         }
     }
 
@@ -93,15 +95,16 @@ public abstract class WeaponBase : NetworkBehaviour
         rb.isKinematic = false;
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (pickUpWeapon == null) return;
-        pickUpWeapon.PickUp(other);
-    }
+    // private void OnTriggerEnter(Collider other)
+    // {
+    //     if (pickUpWeapon == null) return;
+    //     pickUpWeapon.PickUp(other);
+    // }
+
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (!IsOwner) return;
+        if (!IsOwner && !generalCollider && isThrown) return;
 
         GameObject hitObject = collision.gameObject;
         CharacterBase hitPlayer = hitObject.GetComponent<CharacterBase>();
@@ -117,7 +120,7 @@ public abstract class WeaponBase : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void DisablePlayerServerRpc(CharacterBase player)
+    public void DisablePlayerServerRpc(CharacterBase player)
     {
         if (player == null) return;
         player.GetComponent<Respawn>()?.DisablePlayer();

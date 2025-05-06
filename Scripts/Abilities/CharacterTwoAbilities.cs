@@ -9,6 +9,6 @@ public class CharacterTwoAbilities : Abilities
 
     public override void AbilityTwo()
     {
-        Debug.Log("CharacterTwo used Ability 2!");
+        // Debug.Log("CharacterTwo used Ability 2!");
     }
 }

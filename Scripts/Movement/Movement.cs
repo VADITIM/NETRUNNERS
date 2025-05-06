@@ -13,29 +13,19 @@ public class Movement
     private float speed;
     public float currentSpeed;
     private float maxSpeed; 
-    private bool isMaxSpeed;
     private float acceleration;
 
-    private float jumpForce;
     private float gravity;
     public float groundCheckDistance;
     
     private float previousDirection;
 
-
     public bool isGrounded;
     private bool isCollidingWithGround; 
 
     public float jumpBoostX;
-    private bool jumpBoostReady;
 
-    private float cooldown = 1f;
-    private float cooldownTimer = 0f;
-    private bool timerActive = false;
-
-    private MonoBehaviour coroutineHandler;
-
-    public Movement(Rigidbody rb, SpriteRenderer sprite, LayerMask groundLayer, float gravity, float speed, float currentSpeed, float jumpBoostX, float jumpForce, float groundCheckDistance, float acceleration, float maxSpeed, MonoBehaviour coroutineHandler)
+    public Movement(Rigidbody rb, SpriteRenderer sprite, LayerMask groundLayer, float gravity, float speed, float currentSpeed, float jumpBoostX, float groundCheckDistance, float acceleration, float maxSpeed)
     {
         this.rb = rb;
         this.sprite = sprite;
@@ -44,11 +34,9 @@ public class Movement
         this.maxSpeed = maxSpeed;
         this.acceleration = acceleration;
         this.currentSpeed = currentSpeed;
-        this.jumpForce = jumpForce;
         this.jumpBoostX = jumpBoostX;
         this.gravity = gravity;
         this.groundCheckDistance = groundCheckDistance;
-        this.coroutineHandler = coroutineHandler;
 
         hastAuthority = true;
         
@@ -82,8 +70,6 @@ public class Movement
         ApplyGravity();
     }
 
-
-    private Coroutine jumpBoostCoroutine;
 
     // private void CheckVelocity()
     // {
@@ -168,15 +154,8 @@ public class Movement
     {
         if ((isGrounded || isCollidingWithGround) && Input.GetButtonDown("Jump"))
         {
-            rb.velocity = new Vector3(rb.velocity.x, jumpForce, rb.velocity.z);
-            isMaxSpeed = false;
+            rb.AddForce(Vector3.up * 7f, ForceMode.Impulse);
         }
-        // else if (jumpBoostReady && Input.GetButton("Jump"))
-        // {
-        //     rb.velocity = new Vector3(rb.velocity.x * jumpBoostX, jumpForce, rb.velocity.z);
-        //     jumpBoostReady = false;
-        //     Debug.Log("Jump Boost Used");
-        // }
     }
 
     private void Accelerate(float x)

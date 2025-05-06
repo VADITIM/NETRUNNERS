@@ -5,7 +5,7 @@ public class MoveWeapon : NetworkBehaviour
 {
     public float lastPosY { get; private set; }
     
-    private const float SNAPDISTANCE = .25f;
+    private const float SNAPDISTANCE = .5f;
     private const float MAXMOVEDISTANCE = .5f;
     private float currentYOffset = 0f;
     

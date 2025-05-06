@@ -4,23 +4,52 @@ using FishNet.Object;
 public class PickUpWeapon : NetworkBehaviour
 {
     private WeaponBase weaponBase;
+    private bool canPickUp = false; 
+
+    [SerializeField] private Collider playerCollider;
 
     public void Start()
     {
         weaponBase = GetComponent<WeaponBase>();
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.E) && canPickUp && weaponBase.isThrown)
+        {
+            PickUp(playerCollider);
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if ((other.CompareTag("Player1") && weaponBase.pickupCollider.CompareTag("Weapon1")) ||
+            (other.CompareTag("Player2") && weaponBase.pickupCollider.CompareTag("Weapon2")))
+        {
+            canPickUp = true;
+            playerCollider = other;
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other == playerCollider)
+        {
+            canPickUp = false;
+            playerCollider = null;
+        }
+    }
+
+    public ThrowWeapon throwWeapon;
+
     public void PickUp(Collider other)
     {
-        if (weaponBase == null || !weaponBase.isThrown) return;
+        if (weaponBase == null || !weaponBase.isThrown && !throwWeapon.groundCheck) return;
 
-        if ((other.CompareTag("Player1") && weaponBase.pickupTrigger.CompareTag("Weapon1")) ||
-            (other.CompareTag("Player2") && weaponBase.pickupTrigger.CompareTag("Weapon2")))
-        {
-            if (weaponBase.rb == null || weaponBase.weaponHolder == null) return;
-
-            ResetToWeaponHolder();
-        }
+        if (weaponBase.rb == null || weaponBase.weaponHolder == null) return;
+        
+        canPickUp = false;
+        ResetToWeaponHolder();
     }
 
     private void ResetToWeaponHolder()
@@ -29,7 +58,7 @@ public class PickUpWeapon : NetworkBehaviour
 
         weaponBase.rb.isKinematic = true;
         weaponBase.isThrown = false;
-        weaponBase.pickupTrigger.enabled = false;
+        weaponBase.pickupCollider.enabled = false;
 
         transform.SetParent(weaponBase.weaponHolder);
         transform.localPosition = Vector3.zero;
@@ -43,7 +72,7 @@ public class PickUpWeapon : NetworkBehaviour
     {
         weaponBase.rb.isKinematic = true;
         weaponBase.isThrown = false;
-        weaponBase.pickupTrigger.enabled = false;
+        weaponBase.pickupCollider.enabled = false;
 
         transform.SetParent(weaponBase.weaponHolder);
         transform.localPosition = Vector3.zero;
@@ -57,7 +86,7 @@ public class PickUpWeapon : NetworkBehaviour
     {
         weaponBase.rb.isKinematic = true;
         weaponBase.isThrown = false;
-        weaponBase.pickupTrigger.enabled = false;
+        weaponBase.pickupCollider.enabled = false;
 
         transform.SetParent(weaponBase.weaponHolder);
         transform.localPosition = Vector3.zero;

@@ -24,31 +24,6 @@ public class ClientNetworkHandler : NetworkBehaviour
         if (networkManager == null && networkManager.ClientManager == null) return;
             networkManager.ClientManager.OnClientConnectionState -= OnClientConnectionStateChanged;
     }
-
-    public void OnPlayerAssigned(NetworkObject playerObject)
-    {
-        if (isNetworkManagerDisabled || playerObject == null) return;
-
-        DisableNetworkManager();
-    }
-
-    private void DisableNetworkManager()
-    {
-        DisableNetworkManagerServer();
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void DisableNetworkManagerServer()
-    {
-        NetworkCanvas.SetActive(false);
-        DisableNetworkManagerClient();
-    }
-
-    [ObserversRpc]
-    private void DisableNetworkManagerClient()
-    {
-        NetworkCanvas.SetActive(false);
-    }
     
     private void OnClientConnectionStateChanged(ClientConnectionStateArgs args)
     {
